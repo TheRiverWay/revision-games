@@ -429,6 +429,11 @@ $('authForm').onsubmit = async (e) => {
     : await db.auth.signInWithPassword({ email, password });
   $('authBtn').disabled = false;
   if (error) return say('authMsg', nice(error), 'bad');
+  // Supabase answers a sign-up for an existing email with an empty identities list and sends nothing.
+  if (signingUp && data.user && (data.user.identities || []).length === 0) {
+    $('authSwitch').click();
+    return say('authMsg', 'You already have an account with that email. Sign in instead.', 'bad');
+  }
   if (signingUp && !data.session) return say('authMsg', 'Check your email and click the link, then come back and sign in.', 'good');
   S.user = data.user; openWho();
 };
