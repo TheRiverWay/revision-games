@@ -295,7 +295,7 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
   <section id="v-setup" class="hidden">
     <div class="topbar"><span></span><button data-go="who">Change player</button></div>
     <h1>Start your club</h1>
-    <p>Pick your names. Real club and player names aren't allowed, so make one up.</p>
+    <p>Name your club and your manager. Your team, your rules.</p>
     <div class="panel">
       <form id="setupForm">
         <label for="teamIn">Team name</label>
@@ -485,11 +485,9 @@ $('addForm').onsubmit = async (e) => {
 };
 
 /* ===================== New club ===================== */
-const BANNED = /\b(arsenal|chelsea|liverpool|tottenham|spurs|man(chester)? (city|utd|united)|everton|newcastle|villa|west ham|barcelona|real madrid|juventus|bayern|psg|celtic|rangers)\b/i;
 $('setupForm').onsubmit = async (e) => {
   e.preventDefault();
   const team = $('teamIn').value.trim(), manager = $('mgrIn').value.trim();
-  if (BANNED.test(team)) return say('setupMsg', 'That looks like a real club. Make up your own name.', 'bad');
   const { data, error } = await db.from('child_games')
     .insert({ child_id: S.child.id, subject: SUBJECT, theme: THEME, custom_names: { team, manager } })
     .select('id').single();
