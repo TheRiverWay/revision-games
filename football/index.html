@@ -217,6 +217,14 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
 .player-btn span { color: var(--chalk-dim); font-size: 15px; }
 .pin { letter-spacing: .5em; font-size: 32px !important; max-width: 200px !important; text-align: center; }
 
+/* test tools: only for admins, only with #dev on the link */
+.devbar { position: fixed; left: 12px; bottom: 12px; z-index: 50; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 8px 10px; border-radius: 10px; background: #2a0d3d; border: 2px dashed #c48cff; font-size: 14px; max-width: calc(100% - 24px); }
+.devbar[hidden] { display: none; }
+.devbar b { color: #c48cff; font-family: var(--display); letter-spacing: .05em; }
+.devbar button { border: 0; border-radius: 6px; padding: 6px 10px; font-weight: 600; cursor: pointer; background: #c48cff; color: #1a0726; }
+.devbar button:disabled { opacity: .4; cursor: not-allowed; }
+.devbar span { color: var(--chalk-dim); }
 @media (max-width: 680px) {
   h1 { font-size: 42px; } .intro h1 { font-size: 52px; }
   .board { grid-template-columns: 1fr; } .board .credits { text-align: left; }
@@ -359,6 +367,14 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
 
 </main>
 
+<div class="devbar" id="devbar" hidden>
+  <b>TEST</b>
+  <button type="button" id="devRight">Answer right</button>
+  <button type="button" id="devWrong">Answer wrong</button>
+  <button type="button" id="devCredits">+500 credits</button>
+  <span id="devMsg" role="status"></span>
+</div>
+
 <script>
 /* ===================== Connection ===================== */
 const SUPABASE_URL = 'https://ceslgssjxcgqtgqtymqv.supabase.co';
@@ -416,11 +432,11 @@ $('authForm').onsubmit = async (e) => {
   if (signingUp && !data.session) return say('authMsg', 'Check your email and click the link, then come back and sign in.', 'good');
   S.user = data.user; openWho();
 };
-$('signOut').onclick = async () => { await db.auth.signOut(); S.user = null; show('auth'); };
+$('signOut').onclick = async () => { await db.auth.signOut(); S.user = null; isAdmin = false; devInit(); show('auth'); };
 
 /* ===================== Who's playing ===================== */
 async function openWho() {
-  show('who');
+  show('who'); devInit();
   $('whoEmail').textContent = S.user?.email || '';
   $('pinPanel').hidden = true;
   const { data, error } = await db.from('children').select('id, nickname, child_games(id, theme, subject, custom_names)').order('created_at');
@@ -645,7 +661,7 @@ async function nextQ(retryTemplate) {
   $('playCredits').textContent = `${S.game.credits} credits`;
   const { data, error } = await db.rpc('next_question', { p_game: S.game.id, p_template: retryTemplate || null });
   if (error) { $('qText').textContent = nice(error); return; }
-  S.q = data;
+  S.q = data; S.q.servedAt = Date.now();
   renderQ();
   $('answerIn').focus();
 }
@@ -657,6 +673,7 @@ function renderQ() {
   $('qExample').textContent = EXAMPLES[q.template_id] || '';
   $('qTip').hidden = true; $('qTip').textContent = q.tip || '';
   $('tipBtn').hidden = !q.tip;
+  devButtons();
 }
 $('tipBtn').onclick = () => { $('qTip').hidden = false; $('tipBtn').hidden = true; };
 /* Worked answer with this question's own numbers; falls back to the plain steps. */
@@ -756,6 +773,49 @@ $('squad').onclick = async (e) => {
   $('squadHelp').textContent = `${S.collectibles.find((c) => c.id === b.dataset.item).name} is your captain: +${S.perks.coin_bonus} credits on every right answer.`;
 };
 function alertMsg(t) { $('squadHelp').textContent = t; }
+
+/* ===================== Test tools (admins, #dev only) ===================== */
+let isAdmin = false;
+async function devInit() {
+  if (S.user && location.hash === '#dev' && !isAdmin) {
+    const { data } = await db.rpc('is_admin');
+    isAdmin = data === true;
+  }
+  $('devbar').hidden = !(isAdmin && location.hash === '#dev');
+  devButtons();
+}
+function devButtons() {
+  const inPlay = !$('v-play').classList.contains('hidden');
+  const answering = inPlay && S.q && !$('answerBtn').disabled;
+  $('devRight').disabled = !answering; $('devWrong').disabled = !answering;
+  $('devCredits').disabled = !S.game;
+}
+window.addEventListener('hashchange', devInit);
+new MutationObserver(devButtons).observe($('app'), { subtree: true, attributes: true, attributeFilter: ['class', 'disabled'] });
+async function devSubmit(text) {
+  $('answerIn').value = text;
+  // Answers under 2 seconds score nothing, so wait that out to test credits and rank properly.
+  const wait = 2100 - (Date.now() - (S.q.servedAt || 0));
+  if (wait > 0) { $('devMsg').textContent = 'Waiting out the 2-second rule…'; await new Promise((r) => setTimeout(r, wait)); }
+  $('devMsg').textContent = '';
+  $('answerForm').requestSubmit();
+}
+$('devRight').onclick = async () => {
+  $('devRight').disabled = true;
+  const { data, error } = await db.rpc('dev_answer', { p_attempt: S.q.attempt_id });
+  if (error || !data) { $('devMsg').textContent = error ? nice(error) : 'No answer found'; return devButtons(); }
+  devSubmit(data);
+};
+$('devWrong').onclick = () => devSubmit('wrong on purpose');
+$('devCredits').onclick = async () => {
+  const { data, error } = await db.rpc('dev_add_credits', { p_game: S.game.id, p_amount: 500 });
+  if (error) { $('devMsg').textContent = nice(error); return; }
+  S.game.credits = data;
+  $('devMsg').textContent = `Now ${data} credits`;
+  if (!$('v-hub').classList.contains('hidden')) openHub();
+  if (!$('v-pack').classList.contains('hidden')) openPack();
+  $('playCredits').textContent = `${data} credits`;
+};
 
 /* ===================== Start ===================== */
 (async () => {
