@@ -217,6 +217,49 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
 .player-btn span { color: var(--chalk-dim); font-size: 15px; }
 .pin { letter-spacing: .5em; font-size: 32px !important; max-width: 200px !important; text-align: center; }
 
+/* match day */
+.matchbar { background: #050d0a; border: 3px solid #2b3a33; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; }
+.score { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.score .side { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.1; overflow-wrap: anywhere; }
+.score .side.them { text-align: right; color: var(--chalk-dim); }
+.score .nums { font-family: var(--display); font-weight: 800; font-size: 48px; line-height: 1; color: var(--flood);
+  font-variant-numeric: tabular-nums; text-shadow: 0 0 14px rgba(255,210,63,.5); white-space: nowrap; }
+.match-meta { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--chalk-dim); font-size: 15px; margin-top: 8px; }
+.qdots { display: flex; gap: 6px; }
+.qdot { width: 12px; height: 12px; border-radius: 50%; background: #17251f; border: 1px solid #2b3a33; }
+.qdot.goal { background: var(--ok); } .qdot.conceded { background: var(--red); } .qdot.done { background: var(--chalk-dim); }
+.feed { list-style: none; margin: 12px 0 0; padding: 0; max-height: 9.5em; overflow-y: auto; font-size: 16px; }
+.feed li { padding: 4px 0; border-top: 1px solid rgba(238,243,236,.08); }
+.feed li b { font-family: var(--display); color: var(--flood); margin-right: 6px; }
+.feed li.them b { color: var(--red); }
+.moment { font-family: var(--display); font-weight: 800; font-size: 28px; margin: 0 0 10px; }
+.moment.goal { color: var(--ok); } .moment.conceded { color: var(--red); }
+.fulltime { text-align: center; padding: 10px 0; }
+.fulltime .big { font-family: var(--display); font-weight: 800; font-size: 64px; line-height: 1; color: var(--flood); }
+.fulltime .verdict { font-family: var(--display); font-weight: 800; font-size: 34px; margin: 8px 0; }
+/* league table */
+.table { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+.table th, .table td { padding: 5px 6px; text-align: right; border-bottom: 1px solid rgba(238,243,236,.1); }
+.table th { color: var(--chalk-dim); font-weight: 600; font-size: 13px; }
+.table td.team, .table th.team { text-align: left; width: 100%; }
+.table tr.me td { color: var(--flood); font-weight: 700; }
+.table tr.up td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
+.table-note { color: var(--chalk-dim); font-size: 13px; margin-top: 6px; }
+/* your five */
+.five-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; }
+.five-head span { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--flood); }
+.five { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+.five .card .num { font-size: 34px; } .five .card .name { font-size: 15px; }
+.five .slot-empty { border: 2px dashed rgba(238,243,236,.3); border-radius: 10px; aspect-ratio: 3/4; display: grid; place-items: center;
+  color: var(--chalk-dim); font-size: 14px; text-align: center; padding: 6px; }
+.five-actions { display: flex; gap: 6px; justify-content: center; margin-top: 4px; }
+.five-actions button { background: none; border: 1px solid rgba(238,243,236,.35); color: var(--chalk); border-radius: 999px; font-size: 12px; padding: 2px 8px; cursor: pointer; }
+.card.inteam { outline: 3px solid var(--flood); outline-offset: 2px; }
+@media (max-width: 680px) {
+  .five { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .five .card { padding: 6px; } .five .card .num { font-size: 22px; } .five .card .name { font-size: 12px; } .five .card .meta { display: none; }
+  .score .side { font-size: 17px; } .score .nums { font-size: 38px; }
+}
 /* test tools: only for admins, only with #dev on the link */
 .devbar { position: fixed; left: 12px; bottom: 12px; z-index: 50; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
   padding: 8px 10px; border-radius: 10px; background: #2a0d3d; border: 2px dashed #c48cff; font-size: 14px; max-width: calc(100% - 24px); }
@@ -314,13 +357,14 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
     <div class="board" id="board"></div>
     <div class="hub-grid">
       <div class="hub-actions">
-        <button class="btn" data-go="play">Kick off<small>Answer questions to earn credits and rank up</small></button>
+        <button class="btn" data-go="match">Match day<small id="nextMatch">Six questions. Right answers make chances.</small></button>
+        <button class="btn ghost" data-go="squad">Your team<small id="squadCount"></small></button>
         <button class="btn ghost" data-go="pack">Open a player pack<small id="packCost">100 credits for 3 players</small></button>
-        <button class="btn ghost" data-go="squad">Your squad<small id="squadCount"></small></button>
+        <button class="btn ghost" data-go="play">Training<small>Practise questions for credits, no match pressure</small></button>
       </div>
       <div>
-        <h3 style="margin-bottom:10px">Captain</h3>
-        <div id="captainSlot"></div>
+        <h3 style="margin-bottom:10px" id="leagueTitle">League</h3>
+        <div id="leagueMini"></div>
       </div>
     </div>
   </section>
@@ -328,7 +372,8 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
   <!-- Match (questions) -->
   <section id="v-play" class="hidden">
     <div class="topbar"><button data-go="hub">Back to club</button><span id="playCredits"></span></div>
-    <div class="panel">
+    <div class="matchbar" id="matchBar" hidden></div>
+    <div class="panel" id="qPanel">
       <div class="q-head">
         <div class="row" id="qTags"></div>
         <label class="switch"><input type="checkbox" id="examMode"> Exam wording (+2 credits)</label>
@@ -359,8 +404,11 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
   <!-- Squad -->
   <section id="v-squad" class="hidden">
     <div class="topbar"><button data-go="hub">Back to club</button><span></span></div>
-    <h1>Your squad</h1>
-    <p id="squadHelp">Tap a player to make them captain. Rarer captains earn more credits for every right answer.</p>
+    <h1>Your team</h1>
+    <div class="five-head"><h3>Your five</h3><span id="teamRating"></span></div>
+    <div class="five" id="five"></div>
+    <p id="squadHelp">Tap a squad player to bring them into your five, or tap one of your five to take them out. Rarer players make your team stronger.</p>
+    <h3 style="margin-top:22px">Squad</h3>
     <div class="filters" id="filters"></div>
     <div class="squad" id="squad"></div>
   </section>
@@ -404,8 +452,9 @@ document.addEventListener('click', (e) => {
   if (!go) return;
   const v = go.dataset.go;
   if (v === 'who') return openWho();
-  if (v === 'hub') return openHub();
+  if (v === 'hub') { openHub(); return refreshCollection().then(() => { if (!$('v-hub').classList.contains('hidden')) openHub(); }); }
   if (v === 'play') return openPlay();
+  if (v === 'match') return openMatch();
   if (v === 'pack') return openPack();
   if (v === 'squad') return openSquad();
 });
@@ -497,33 +546,61 @@ $('setupForm').onsubmit = async (e) => {
 
 /* ===================== Loading a game ===================== */
 async function loadGame(id) {
-  const [g, th, w, cols, own, crate, rank, perks] = await Promise.all([
+  const team = await db.rpc('ensure_team', { p_game: id });  // new clubs get five academy players
+  if (team.error) throw team.error;
+  const [g, th, w, cols, own, crate, rank, perks, league] = await Promise.all([
     db.from('child_games').select('*').eq('id', id).single(),
     db.from('themes').select('*').eq('id', THEME).single(),
     db.from('theme_wording').select('template_id, theme, wording').in('theme', [THEME, 'generic']),
     db.from('collectibles').select('id, name, rarity, kind, slot, perks').eq('theme', THEME).order('id'),
-    db.from('child_collection').select('collectible_id, quantity, equipped_slot').eq('game_id', id),
+    db.from('child_collection').select('collectible_id, quantity, equipped_slot, in_lineup').eq('game_id', id),
     db.from('crates').select('*').eq('id', PACK).single(),
     db.rpc('rank_info', { p_game: id }),
     db.rpc('game_perks', { p_game: id }),
+    db.rpc('league_info', { p_game: id }),
   ]);
-  for (const r of [g, th, w, cols, own, crate, rank, perks]) if (r.error) throw r.error;
-  S.game = g.data; S.theme = th.data; S.crate = crate.data; S.rank = rank.data; S.perks = perks.data;
+  for (const r of [g, th, w, cols, own, crate, rank, perks, league]) if (r.error) throw r.error;
+  S.game = g.data; S.theme = th.data; S.crate = crate.data; S.rank = rank.data; S.perks = perks.data; S.league = league.data;
   S.wording = {}; (w.data || []).forEach((x) => { S.wording[x.template_id + '|' + x.theme] = x.wording; });
   S.collectibles = cols.data || [];
   S.owned = new Map((own.data || []).map((o) => [o.collectible_id, o]));
 }
 async function refreshCollection() {
-  const [own, perks] = await Promise.all([
-    db.from('child_collection').select('collectible_id, quantity, equipped_slot').eq('game_id', S.game.id),
+  const [own, perks, league, game, rank] = await Promise.all([
+    db.from('child_collection').select('collectible_id, quantity, equipped_slot, in_lineup').eq('game_id', S.game.id),
     db.rpc('game_perks', { p_game: S.game.id }),
+    db.rpc('league_info', { p_game: S.game.id }),
+    db.from('child_games').select('*').eq('id', S.game.id).single(),
+    db.rpc('rank_info', { p_game: S.game.id }),
   ]);
   S.owned = new Map((own.data || []).map((o) => [o.collectible_id, o]));
   S.perks = perks.data;
+  if (league.data) S.league = league.data;
+  if (game.data) S.game = game.data;
+  if (rank.data) S.rank = rank.data;
+}
+const RATING = { common: 1, rare: 2, epic: 3, legendary: 4 };
+const ordinal = (n) => n + (['th', 'st', 'nd', 'rd'][(n % 100 - 20) % 10] || ['th', 'st', 'nd', 'rd'][n % 100] || 'th');
+function tableHTML(rows, opts = {}) {
+  const top = S.league && S.rank && S.league.tier >= S.rank.max_tier;
+  return `<table class="table"><thead><tr><th>#</th><th class="team">Team</th><th>P</th>${opts.full ? '<th>W</th><th>D</th><th>L</th>' : ''}<th>GD</th><th>Pts</th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr class="${r.me ? 'me' : ''}${i < 2 && !top ? ' up' : ''}"><td>${i + 1}</td><td class="team">${esc(r.name)}</td><td>${r.p}</td>
+      ${opts.full ? `<td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>` : ''}<td>${r.gf - r.ga > 0 ? '+' : ''}${r.gf - r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')}
+  </tbody></table><p class="table-note">${top ? 'Top of the pyramid. Win it all.' : 'Top 2 get promoted at the end of the season.'}</p>`;
 }
 
 /* ===================== Club HQ ===================== */
 function boardHTML() {
+  if (S.league) {
+    const L = S.league, pos = L.table.findIndex((t) => t.me) + 1;
+    const pips = Array.from({ length: L.rounds }, (_, i) => `<div class="pip${i < L.played ? ' on' : ''}"></div>`).join('');
+    return `<div><div class="team">${esc(S.game.custom_names?.team || 'Your club')}</div>
+        <div class="manager">Manager: ${esc(S.game.custom_names?.manager || S.child.nickname)}</div></div>
+      <div class="credits"><b id="creditNum">${S.game.credits}</b><span>credits</span></div>
+      <div class="rank"><div class="rank-top"><span>${esc(L.tier_name)}, season ${L.season}</span>
+        <em>${L.played ? `${ordinal(pos)} of 8 after ${L.played} of ${L.rounds}` : 'Season kicks off next match'}</em></div>
+        <div class="pips" style="grid-template-columns:repeat(${L.rounds},1fr)" aria-label="${L.played} of ${L.rounds} matches played">${pips}</div></div>`;
+  }
   const r = S.rank || { tier: 1, level: 1, tier_name: '', level_progress: 0, per_level: 5 };
   const pips = Array.from({ length: 10 }, (_, i) => {
     const n = i + 1;
@@ -546,7 +623,7 @@ function cardHTML(c, opts = {}) {
   const attrs = opts.button ? ` data-item="${esc(c.id)}" aria-label="${esc(c.name)}, ${RAR[c.rarity]}${opts.captain ? ', captain' : ''}"` : '';
   return `<${tag} class="card${cap}${opts.locked ? ' locked' : ''}" data-r="${c.rarity}"${attrs}>
     <div class="shirt"></div><div class="num">${num}</div>
-    <div><div class="name">${esc(c.name)}</div><div class="meta">${RAR[c.rarity]}, +${c.perks?.coin_bonus ?? BONUS[c.rarity]} credits${qty}</div></div>
+    <div><div class="name">${esc(c.name)}</div><div class="meta">${RAR[c.rarity]}, +${RATING[c.rarity] || 1} rating${qty}</div></div>
   </${tag}>`;
 }
 function openHub() {
@@ -554,13 +631,15 @@ function openHub() {
   $('hubWho').textContent = `Playing as ${S.child.nickname}`;
   $('board').innerHTML = boardHTML();
   $('packCost').textContent = `${S.crate?.price ?? 100} credits for ${S.crate?.items_per_crate ?? 3} players`;
-  const ownedCount = S.owned.size;
-  $('squadCount').textContent = `${ownedCount} of ${S.collectibles.length} players collected`;
-  const capId = [...S.owned.values()].find((o) => o.equipped_slot === 'captain')?.collectible_id;
-  const cap = S.collectibles.find((c) => c.id === capId);
-  $('captainSlot').innerHTML = cap
-    ? `<div class="captain-slot">${cardHTML(cap, { captain: true })}</div>`
-    : `<div class="captain-empty">No captain yet. Open a player pack, then pick one in your squad.</div>`;
+  S.match = null;
+  const L = S.league;
+  $('squadCount').textContent = `Team rating ${L?.rating ?? 0}. ${S.owned.size} of ${S.collectibles.length} players collected`;
+  const live = L?.live_match;
+  $('nextMatch').textContent = live
+    ? `Back to it: ${live.our_goals}–${live.their_goals} vs ${live.opponent}`
+    : L ? `Match ${L.played % L.rounds + 1} of ${L.rounds}: vs ${L.next_opponent?.name} (rating ${L.next_opponent?.rating})` : 'Six questions. Right answers make chances.';
+  $('leagueTitle').textContent = L ? `${L.tier_name} table` : 'League';
+  $('leagueMini').innerHTML = L ? tableHTML(L.table) : '';
 }
 
 /* ===================== Worked explanations ===================== */
@@ -657,7 +736,76 @@ function questionText() {
   const text = (!exam && S.wording[q.template_id + '|' + THEME]) || S.wording[q.template_id + '|generic'] || q.spec_point;
   return fill(text, q.vars);
 }
-async function openPlay() { show('play'); await nextQ(); }
+/* Training: endless questions, no match. */
+async function openPlay() {
+  S.match = null; $('matchBar').hidden = true; $('qPanel').hidden = false;
+  show('play'); await nextQ();
+}
+
+/* ===================== Match day ===================== */
+async function openMatch() {
+  show('play'); $('qPanel').hidden = false;
+  $('matchBar').hidden = false; $('matchBar').innerHTML = '<p>Walking out of the tunnel…</p>';
+  const { data, error } = await db.rpc('start_match', { p_game: S.game.id });
+  if (error) { $('matchBar').innerHTML = `<p class="msg bad">${esc(nice(error))}</p>`; return; }
+  S.match = data;
+  renderMatchBar();
+  await nextQ();
+}
+const GOAL_LINES = ['{s} smashes it into the top corner!', '{s} slots it past the keeper!', '{s} taps in at the back post!',
+  '{s} curls one in from the edge of the box!', 'A thumping header from {s}!', '{s} rounds the keeper and scores!'];
+function commentary(ev, i) {
+  const opp = S.match.opponent;
+  if (ev.rushed) return 'Rushed it! Too quick to count, and the chance goes begging.';
+  if (ev.side === 'us') return ev.goal ? `GOAL! ${GOAL_LINES[(ev.minute + i) % GOAL_LINES.length].replace('{s}', ev.scorer || 'Your striker')}`
+    : ['Great chance, but their keeper tips it over.', 'Shot fizzes just wide. So close!', 'Off the crossbar! Unlucky.'][(ev.minute + i) % 3];
+  return ev.goal ? `${opp} pounce on the mistake and score.` : [`${opp} break through but hit the post. Phew.`, `${opp} shoot, your keeper saves. Let off!`][(ev.minute + i) % 2];
+}
+function renderMatchBar() {
+  const m = S.match, ev = m.events || [];
+  const dots = Array.from({ length: m.questions }, (_, i) => {
+    const e = ev[i];
+    return `<span class="qdot${!e ? '' : e.goal ? (e.side === 'us' ? ' goal' : ' conceded') : ' done'}"></span>`;
+  }).join('');
+  const feed = ev.map((e, i) => ({ e, i })).reverse()
+    .map(({ e, i }) => `<li class="${e.side === 'us' && !e.rushed ? 'us' : 'them'}"><b>${e.minute}'</b>${esc(commentary(e, i))}</li>`).join('');
+  const qn = Math.min(ev.length + 1, m.questions);
+  $('matchBar').innerHTML = `<div class="score">
+      <div class="side">${esc(S.game.custom_names?.team || 'Your club')}</div>
+      <div class="nums">${m.our_goals} – ${m.their_goals}</div>
+      <div class="side them">${esc(m.opponent)}</div></div>
+    <div class="match-meta"><span>${m.status === 'done' ? 'Full time' : `Question ${qn} of ${m.questions}`}</span>
+      <span class="qdots" aria-hidden="true">${dots}</span>
+      <span>Match ${m.round} of ${m.rounds}, rating ${m.our_rating} v ${m.their_rating}</span></div>
+    ${feed ? `<ul class="feed">${feed}</ul>` : ''}`;
+}
+async function showFullTime() {
+  const m = S.match, se = m.season_end;
+  await refreshCollection();
+  const won = m.our_goals > m.their_goals, drew = m.our_goals === m.their_goals;
+  const verdict = won ? 'You win!' : drew ? 'A draw' : 'Beaten this time';
+  let season = '';
+  if (se) {
+    const head = se.champions ? `Champions of ${esc(se.tier_name)}!` : `You finished ${ordinal(se.position)} in ${esc(se.tier_name)}`;
+    const next = se.promoted ? `Promoted to ${esc(se.new_tier_name)}! Tougher teams await.`
+      : S.league.tier >= S.rank.max_tier ? 'Top of the pyramid. Defend your crown next season.' : 'Finish top 2 next season to go up.';
+    season = `<div class="levelup" style="margin:16px 0">${head}${se.bonus ? ` +${se.bonus} credits` : ''}</div><p>${next}</p>
+      <h3 style="margin:14px 0 8px">Final table</h3>${tableHTML(se.table, { full: true })}`;
+  } else {
+    season = `<h3 style="margin:14px 0 8px">${esc(S.league.tier_name)} table</h3>${tableHTML(S.league.table, { full: true })}`;
+  }
+  $('qPanel').hidden = true;
+  renderMatchBar();
+  $('matchBar').insertAdjacentHTML('beforeend', `<div class="fulltime">
+      <div class="verdict">${verdict}</div>
+      <p>${m.credits_awarded ? `+${m.credits_awarded} credits${se?.bonus ? ' including your season bonus' : ' for the result'}` : 'No result bonus, but every right answer still earned credits.'}</p>
+    </div>${season}
+    <div class="row" style="margin-top:18px;justify-content:center"><button class="btn" id="nextMatchBtn">Next match</button>
+      <button class="btn ghost small" data-go="hub">Back to club</button></div>`);
+  $('nextMatchBtn').onclick = openMatch;
+  $('playCredits').textContent = `${S.game.credits} credits`;
+  S.match = null;
+}
 async function nextQ(retryTemplate) {
   $('qResult').innerHTML = ''; $('answerIn').value = ''; $('answerIn').disabled = false; $('answerBtn').disabled = false;
   $('qText').textContent = 'Loading…';
@@ -701,7 +849,7 @@ $('answerForm').onsubmit = async (e) => {
     const extras = [];
     if (data.gear_bonus) extras.push(`+${data.gear_bonus} from your captain`);
     if ($('examMode').checked && data.credits_awarded) extras.push('+2 for exam wording');
-    html = `<div class="result right"><h3>${data.too_fast ? 'Right, but too quick to score' : `Goal! +${data.credits_awarded} credits`}</h3>
+    html = `<div class="result right"><h3>${data.too_fast ? 'Right, but too quick to score' : `Right! +${data.credits_awarded} credits`}</h3>
       ${data.too_fast ? '<p>Take a couple of seconds to read each question. Answers under 2 seconds earn nothing.</p>' : extras.length ? `<p>${extras.join(', ')}</p>` : ''}
       ${topic}
       ${data.tier_up ? `<div class="levelup">Promoted to ${esc(data.rank.tier_name)}!</div>` : data.levelled_up ? `<div class="levelup">Level ${data.rank.level} reached</div>` : ''}
@@ -718,6 +866,29 @@ $('answerForm').onsubmit = async (e) => {
   $('nextBtn').onclick = () => nextQ();
   if ($('retryBtn')) $('retryBtn').onclick = () => nextQ(S.q.template_id);
   (data.correct ? $('nextBtn') : $('retryBtn')).focus();
+
+  // In a match, this answer becomes a chance for one side.
+  if (S.match) {
+    const btns = [$('nextBtn'), $('retryBtn')].filter(Boolean);
+    btns.forEach((b) => { b.disabled = true; });
+    const ev = await db.rpc('match_event', { p_match: S.match.id, p_attempt: S.q.attempt_id });
+    btns.forEach((b) => { b.disabled = false; });
+    if (ev.error) { $('qResult').insertAdjacentHTML('afterbegin', `<p class="msg bad">${esc(nice(ev.error))}</p>`); return; }
+    S.match = ev.data;
+    const events = S.match.events, e = events[events.length - 1];
+    renderMatchBar();
+    const cls = e.goal ? (e.side === 'us' ? 'goal' : 'conceded') : '';
+    const head = e.goal ? (e.side === 'us' ? `GOAL! ${S.match.our_goals}–${S.match.their_goals}` : `They score. ${S.match.our_goals}–${S.match.their_goals}`)
+      : e.side === 'us' ? 'So close!' : 'Phew!';
+    $('qResult').querySelector('.result').insertAdjacentHTML('afterbegin',
+      `<p class="moment ${cls}">${e.minute}' ${esc(head)}</p><p>${esc(commentary(e, events.length - 1))}</p>`);
+    if (S.match.status === 'done') {
+      $('nextBtn').textContent = 'Full time';
+      $('nextBtn').onclick = showFullTime;
+      if ($('retryBtn')) $('retryBtn').remove();
+      $('nextBtn').className = 'btn'; $('nextBtn').focus();
+    }
+  }
 };
 
 /* ===================== Player pack ===================== */
@@ -729,7 +900,7 @@ function openPack() {
   $('packCredits').textContent = `${S.game.credits} credits`;
   $('packStage').innerHTML = `<div class="pack" id="pack">PLAYER<br>PACK</div>`;
   $('packButtons').innerHTML = `<button class="btn" id="openBtn">Open for ${c.price} credits</button>`;
-  say('packMsg', S.game.credits < c.price ? `You need ${c.price - S.game.credits} more credits. Kick off to earn them.` : '');
+  say('packMsg', S.game.credits < c.price ? `You need ${c.price - S.game.credits} more credits. Play a match or train to earn them.` : '');
   $('openBtn').disabled = S.game.credits < c.price;
   $('openBtn').onclick = doOpen;
 }
@@ -746,7 +917,7 @@ async function doOpen() {
   const best = items.reduce((a, b) => (['common', 'rare', 'epic', 'legendary'].indexOf(b.rarity) > ['common', 'rare', 'epic', 'legendary'].indexOf(a.rarity) ? b : a));
   say('packMsg', `${isNew.filter(Boolean).length} new for your squad. Best pull: ${best.name} (${RAR[best.rarity]}).`, 'good');
   await refreshCollection();
-  $('packButtons').innerHTML = `<button class="btn" id="againBtn" ${S.game.credits < S.crate.price ? 'disabled' : ''}>Open another</button><button class="btn ghost small" data-go="squad">Pick a captain</button>`;
+  $('packButtons').innerHTML = `<button class="btn" id="againBtn" ${S.game.credits < S.crate.price ? 'disabled' : ''}>Open another</button><button class="btn ghost small" data-go="squad">Pick your team</button>`;
   $('againBtn').onclick = openPack;
 }
 
@@ -765,15 +936,47 @@ function renderSquad() {
     .sort((a, b) => (S.owned.has(b.id) - S.owned.has(a.id)) || order[a.rarity] - order[b.rarity] || a.id.localeCompare(b.id));
   $('squad').innerHTML = list.map((c) => {
     const o = S.owned.get(c.id);
-    return o ? cardHTML(c, { button: true, captain: o.equipped_slot === 'captain', qty: o.quantity }) : cardHTML(c, { locked: true });
+    if (!o) return cardHTML(c, { locked: true });
+    return cardHTML(c, { button: true, captain: o.equipped_slot === 'captain', qty: o.quantity }).replace('class="card', `class="card${o.in_lineup ? ' inteam' : ''}`);
   }).join('') || '<p>No players here yet. Open a pack to start your squad.</p>';
+  renderFive();
+}
+const lineupIds = () => [...S.owned.values()].filter((o) => o.in_lineup).map((o) => o.collectible_id);
+function renderFive() {
+  const ids = lineupIds();
+  const cards = Array.from({ length: 5 }, (_, i) => {
+    const c = S.collectibles.find((x) => x.id === ids[i]);
+    if (!c) return '<div><div class="slot-empty">Empty spot. Tap a squad player.</div></div>';
+    const isCap = S.owned.get(c.id)?.equipped_slot === 'captain';
+    return `<div>${cardHTML(c, { captain: isCap })}<div class="five-actions">
+      ${isCap ? '' : `<button type="button" data-cap="${esc(c.id)}">Captain</button>`}<button type="button" data-drop="${esc(c.id)}">Drop</button></div></div>`;
+  }).join('');
+  $('five').innerHTML = cards;
+  $('teamRating').textContent = `Rating ${S.league?.rating ?? 0}`;
+}
+async function saveLineup(ids, msg) {
+  const { data, error } = await db.rpc('set_lineup', { p_game: S.game.id, p_items: ids });
+  if (error) return alertMsg(nice(error));
+  S.league = data;
+  await refreshCollection(); renderSquad();
+  if (msg) alertMsg(msg);
 }
 $('squad').onclick = async (e) => {
   const b = e.target.closest('[data-item]'); if (!b) return;
-  const { error } = await db.rpc('equip_item', { p_game: S.game.id, p_item: b.dataset.item, p_slot: null });
-  if (error) return alertMsg(nice(error));
-  await refreshCollection(); renderSquad();
-  $('squadHelp').textContent = `${S.collectibles.find((c) => c.id === b.dataset.item).name} is your captain: +${S.perks.coin_bonus} credits on every right answer.`;
+  const id = b.dataset.item, ids = lineupIds(), name = S.collectibles.find((c) => c.id === id)?.name;
+  if (ids.includes(id)) return saveLineup(ids.filter((x) => x !== id), `${name} drops to the bench.`);
+  if (ids.length >= 5) return alertMsg('Your five is full. Drop someone first.');
+  saveLineup([...ids, id], `${name} is in your five.`);
+};
+$('five').onclick = async (e) => {
+  const drop = e.target.closest('[data-drop]'), cap = e.target.closest('[data-cap]');
+  if (drop) return saveLineup(lineupIds().filter((x) => x !== drop.dataset.drop));
+  if (cap) {
+    const { error } = await db.rpc('equip_item', { p_game: S.game.id, p_item: cap.dataset.cap, p_slot: null });
+    if (error) return alertMsg(nice(error));
+    await refreshCollection(); renderSquad();
+    alertMsg(`${S.collectibles.find((c) => c.id === cap.dataset.cap).name} is captain: +${S.perks.coin_bonus} credits on every right answer.`);
+  }
 };
 function alertMsg(t) { $('squadHelp').textContent = t; }
 
