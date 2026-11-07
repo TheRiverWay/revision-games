@@ -729,7 +729,7 @@ function fill(text, vars) {
     if (Array.isArray(v)) v = v.join(', ');
     else if (typeof v === 'number') v = cur && !Number.isInteger(v) ? v.toFixed(2) : v.toLocaleString('en-GB', { maximumFractionDigits: 6 });
     return (cur || '') + v;
-  });
+  }).replace(/s's\b/g, "s'");  // "Test Rovers's" -> "Test Rovers'"
 }
 function questionText() {
   const q = S.q, exam = $('examMode').checked;
