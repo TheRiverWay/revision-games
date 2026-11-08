@@ -166,3 +166,13 @@ begin
 end $function$;
 revoke all on function public.choose_venture(uuid, text) from public, anon;
 grant execute on function public.choose_venture(uuid, text) to authenticated;
+
+-- Parents can only start games on live themes. Draft themes are admin only, so Joel can test new skins
+-- and, later, assign themes himself. (Game updates were already limited to names, colours, exam board
+-- and tier by column grants; credits, rank, venture and theme only change through server functions.)
+drop policy if exists "add games" on child_games;
+create policy "add games" on child_games for insert to authenticated
+  with check (
+    public.owns_child(child_id)
+    and (public.is_admin() or exists (select 1 from public.themes t where t.id = theme and t.status = 'live'))
+  );
