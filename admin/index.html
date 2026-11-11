@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin · LevelWise</title>
+<link rel="icon" type="image/png" href="/brand/icon.png">
+<script src="/vendor/supabase-2.119.0.js"></script>
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+:root { --ink: #172C5B; --soft: #5E6886; --line: #D6DDEA; --bg: #F6F5F1; --card: #FFFFFF; --accent: #0E8783; --bad: #C2412D; --good: #3F8A2E; --warn: #9A5200; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; color: var(--ink); background: var(--bg); }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 64px; }
+h1 { font-size: 28px; margin: 0 0 4px; } h2 { font-size: 20px; margin: 0; } h3 { font-size: 17px; margin: 0; }
+.muted { color: var(--soft); font-size: 14px; }
+.hidden { display: none !important; }
+button, input, select { font: inherit; }
+.btn { border: 0; border-radius: 8px; padding: 8px 14px; background: var(--accent); color: #fff; cursor: pointer; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn.small { padding: 4px 10px; font-size: 14px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+input[type=text], input[type=email], input[type=password], select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; min-width: 0; }
+label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.top { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.msg { min-height: 22px; font-weight: 600; font-size: 14px; margin-top: 8px; }
+.msg.bad { color: var(--bad); } .msg.good { color: var(--good); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+.family { margin-bottom: 14px; }
+.family-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.child { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
+.child-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #E3E8F1; margin-right: 4px; }
+.tag.good { background: #dcefe5; color: var(--good); } .tag.warn { background: #f6e7c8; color: var(--warn); } .tag.bad { background: #f6dcd9; color: var(--bad); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--soft); }
+.form { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 4px 12px; margin-top: 4px; }
+.topics label { font-weight: 400; margin: 0; display: flex; gap: 6px; align-items: center; }
+.results { margin-top: 8px; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* LevelWise brand layer */
+body { font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+h1, h2, h3 { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700; letter-spacing: 0; }
+body::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, #172C5B 0 20%, #2854AC 20% 40%, #14AFAA 40% 60%, #EE9C2B 60% 80%, #69BD56 80%); }
+.lw-logo { display: block; height: 40px; width: auto; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<main>
+  <section id="v-auth" class="hidden">
+    <img class="lw-logo" src="/brand/logo.png" alt="LevelWise" width="117" height="40">
+    <h1>Admin</h1>
+    <p class="muted">Admins only.</p>
+    <form id="authForm" class="panel" style="max-width:420px">
+      <label for="email">Email</label><input id="email" type="email" required autocomplete="email" style="width:100%">
+      <label for="password">Password</label><input id="password" type="password" required autocomplete="current-password" style="width:100%">
+      <div class="row" style="margin-top:14px"><button class="btn" id="authBtn">Sign in</button></div>
+      <div class="msg" id="authMsg" role="status"></div>
+    </form>
+  </section>
+
+  <section id="v-admin" class="hidden">
+    <div class="top">
+      <div><img class="lw-logo" src="/brand/logo.png" alt="LevelWise" width="117" height="40"><h1>Admin</h1><p class="muted" id="who"></p></div>
+      <div class="row">
+        <input id="search" type="text" placeholder="Search email or child" aria-label="Search families">
+        <button class="btn ghost small" id="refresh">Refresh</button>
+        <button class="btn ghost small" id="signOut">Sign out</button>
+      </div>
+    </div>
+    <p class="muted">Parents create their own account first. Then add their child here and assign a game. Kids open the game link, sign in with the parent’s account and pick their name.</p>
+    <div class="msg" id="topMsg" role="status"></div>
+    <details class="panel family"><summary><b>Tutors and question review</b></summary>
+      <p class="muted">A tutor signs up on any game page first, then you add them here. Tutors can review questions at <a href="../review/" target="_blank" rel="noopener">/review/</a>.</p>
+      <form id="tutorForm" class="grid2">
+        <div><label for="tEmail">Their email</label><input id="tEmail" type="email" required style="width:100%"></div>
+        <div><label for="tName">Name</label><input id="tName" type="text" maxlength="60" required style="width:100%"></div>
+        <div class="row" style="margin-top:12px"><button class="btn small">Make tutor</button></div>
+      </form>
+      <div class="msg" id="tutorMsg" role="status"></div>
+    </details>
+    <div id="delReqs"></div>
+    <div id="families"></div>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://ceslgssjxcgqtgqtymqv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-EqMrnc25mY92Q4Irw8pMA_h_iS2TkB';
+const db = window.__MOCK_DB__ || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const BOARDS = ['AQA', 'Edexcel', 'OCR'];
+
+const S = { user: null, data: [], themes: [], flavours: [], topics: [], open: null };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const say = (id, text, kind = '') => { const el = $(id); if (!el) return; el.textContent = text || ''; el.className = 'msg ' + kind; };
+const nice = (e) => (e && e.message) ? String(e.message).replace(/^.*?:\s(?=[A-Z])/, '') : 'Something went wrong.';
+const when = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'never';
+const el = (f, n) => f.querySelector(`[name="${n}"]`);
+const themeOf = (id) => S.themes.find((t) => t.id === id);
+const playLink = (theme) => theme === 'football' ? '../football/' : `../tycoon/?skin=${encodeURIComponent(theme)}`;
+function show(v) { ['auth', 'admin'].forEach((x) => $('v-' + x).classList.toggle('hidden', x !== v)); }
+
+$('authForm').onsubmit = async (e) => {
+  e.preventDefault();
+  $('authBtn').disabled = true; say('authMsg', 'Signing in…');
+  const { data, error } = await db.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+  $('authBtn').disabled = false;
+  if (error) return say('authMsg', nice(error), 'bad');
+  S.user = data.user; start();
+};
+$('signOut').onclick = async () => { await db.auth.signOut(); S.user = null; show('auth'); };
+$('refresh').onclick = () => load();
+$('tutorForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const { error } = await db.rpc('admin_make_tutor', { p_email: $('tEmail').value.trim(), p_name: $('tName').value.trim() });
+  if (error) return say('tutorMsg', nice(error), 'bad');
+  say('tutorMsg', `${$('tName').value.trim()} is now a tutor and can review questions.`, 'good'); $('tutorForm').reset();
+};
+$('search').oninput = () => render();
+
+async function start() {
+  const { data } = await db.rpc('is_admin');
+  if (data !== true) { show('auth'); return say('authMsg', 'That account is not an admin.', 'bad'); }
+  show('admin');
+  $('who').textContent = `Signed in as ${S.user?.email || ''}`;
+  const [th, fl, tp] = await Promise.all([
+    db.from('themes').select('id, name, status, custom_name_fields, tier_names').neq('status', 'system').order('name'),
+    db.from('theme_flavours').select('id, theme, name, unlock_tier, sort').order('sort'),
+    db.rpc('focus_topic_names'),
+  ]);
+  S.themes = th.data || []; S.flavours = fl.data || []; S.topics = tp.data || [];
+  load();
+}
+
+async function load() {
+  say('topMsg', 'Loading…');
+  const { data, error } = await db.rpc('admin_overview');
+  if (error) return say('topMsg', nice(error), 'bad');
+  S.data = data || []; say('topMsg', '');
+  render(); loadDeletions();
+}
+
+async function loadDeletions() {
+  const { data, error } = await db.rpc('admin_deletion_requests');
+  const box = $('delReqs');
+  if (error || !data || !data.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="panel family" style="border-color:#B3261E"><h2>Deletion requests (${data.length})</h2>
+    <p class="muted">Delete each account by its date. This removes the parent, their children and all their data, and can’t be undone. Then email them to confirm.</p>
+    ${data.map((r) => `<div class="child"><div class="child-head"><div><b>${esc(r.email)}</b>
+      <span class="muted"> · asked ${when(r.requested_at)} · delete by <b>${when(r.delete_by)}</b> · ${r.children} child${r.children === 1 ? '' : 'ren'}</span>
+      ${r.reason ? `<br><span class="muted">“${esc(r.reason)}”</span>` : ''}</div></div>
+      <form class="row" data-delreq="${r.id}" style="margin-top:8px"><input type="email" placeholder="Type their email to confirm" aria-label="Confirm email" required style="min-width:260px">
+      <button class="btn small" style="background:#B3261E">Delete account</button></form>
+      <div class="msg" id="delMsg-${r.id}" role="status"></div></div>`).join('')}</div>`;
+}
+document.addEventListener('submit', async (e) => {
+  const f = e.target.closest('[data-delreq]'); if (!f) return;
+  e.preventDefault();
+  const id = Number(f.dataset.delreq), email = f.querySelector('input').value.trim();
+  const { data, error } = await db.rpc('admin_delete_account', { p_request: id, p_confirm_email: email });
+  if (error) {
+    const m = /function .*admin_delete_account|Could not find the function/i.test(error.message || '') ? 'Run the account deletion SQL in Supabase first.' : nice(error);
+    return say('delMsg-' + id, m, 'bad');
+  }
+  await load(); say('topMsg', `Deleted ${data.deleted}. Email them to confirm.`, 'good');
+});
+
+function gameRow(g) {
+  const t = themeOf(g.theme), fl = S.flavours.find((f) => f.id === g.flavour);
+  const names = Object.values(g.custom_names || {}).join(' · ');
+  const rank = t?.tier_names?.[g.rank_tier - 1] ? `${t.tier_names[g.rank_tier - 1]}, level ${g.rank_level}` : `Tier ${g.rank_tier}, level ${g.rank_level}`;
+  return `<tr><td><b>${esc(t?.name || g.theme)}</b>${t?.status === 'draft' ? ' <span class="tag warn">draft</span>' : ''}<br><span class="muted">${esc(fl?.name || '')}</span></td>
+    <td>${esc(names) || '<span class="muted">Not named yet</span>'}</td><td>${esc(g.exam_board)}</td><td>${esc(rank)}</td>
+    <td>${esc(g.answered_7d)} this week<br><span class="muted">last ${when(g.last_played)}</span></td>
+    <td><a href="${playLink(g.theme)}" target="_blank" rel="noopener">Open</a></td></tr>`;
+}
+
+function childBlock(c) {
+  const chk = c.last_check;
+  const checkTag = !chk ? '<span class="tag">No check yet</span>'
+    : chk.finished_at ? `<span class="tag good">Check done ${when(chk.finished_at)}</span> <button class="btn ghost small" data-results="${chk.id}" data-child="${c.id}">Results</button>`
+    : '<span class="tag warn">Check in progress</span>';
+  return `<div class="child" data-childblock="${c.id}">
+    <div class="child-head"><div><h3>${esc(c.nickname)}</h3>
+      <span class="tag ${c.has_pin ? 'good' : ''}">${c.has_pin ? 'PIN set' : 'No PIN'}</span>${checkTag}
+      ${c.focus_topics.length ? `<span class="muted">Focus: ${c.focus_topics.map(esc).join(', ')}</span>` : '<span class="muted">No focus topics</span>'}</div>
+      <button class="btn small" data-assign="${c.id}">Assign a game</button></div>
+    ${c.games.length ? `<table><tr><th>Game</th><th>Names</th><th>Board</th><th>Rank</th><th>Practice</th><th></th></tr>${c.games.map(gameRow).join('')}</table>` : '<p class="muted">No game yet.</p>'}
+    <div class="results" id="res-${c.id}"></div>
+    <div id="form-${c.id}"></div></div>`;
+}
+
+function render() {
+  const q = $('search').value.trim().toLowerCase();
+  const fams = S.data.filter((p) => !q || (p.email || '').toLowerCase().includes(q) || p.children.some((c) => c.nickname.toLowerCase().includes(q)));
+  $('families').innerHTML = fams.map((p) => `<div class="panel family">
+    <div class="family-head"><div><h2>${esc(p.email || p.display_name || 'No email')}</h2>
+      <span class="muted">Joined ${when(p.created_at)} · ${p.children.length} child${p.children.length === 1 ? '' : 'ren'}</span></div>
+      <button class="btn ghost small" data-addchild="${p.id}">Add child</button></div>
+    <div id="add-${p.id}"></div>
+    ${p.children.map(childBlock).join('') || '<p class="muted">No children yet.</p>'}</div>`).join('') || '<p class="muted">No families match.</p>';
+}
+
+document.addEventListener('click', async (e) => {
+  const add = e.target.closest('[data-addchild]');
+  if (add) return openAddChild(add.dataset.addchild);
+  const as = e.target.closest('[data-assign]');
+  if (as) return openAssign(as.dataset.assign);
+  const rs = e.target.closest('[data-results]');
+  if (rs) return showResults(rs.dataset.results, rs.dataset.child);
+});
+
+function openAddChild(parentId) {
+  const box = $('add-' + parentId);
+  box.innerHTML = `<form class="form" id="addForm-${parentId}"><div class="grid2">
+    <div><label>First name or nickname</label><input type="text" name="nick" maxlength="20" required></div>
+    <div><label>4-digit PIN (optional)</label><input type="text" name="pin" inputmode="numeric" maxlength="4"></div></div>
+    <div class="row" style="margin-top:12px"><button class="btn small">Add child</button><button type="button" class="btn ghost small" data-cancel>Cancel</button></div>
+    <div class="msg" id="addMsg-${parentId}" role="status"></div></form>`;
+  const f = $('addForm-' + parentId);
+  f.querySelector('[data-cancel]').onclick = () => { box.innerHTML = ''; };
+  f.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const { error } = await db.rpc('admin_add_child', { p_parent: parentId, p_nickname: el(f, 'nick').value, p_pin: el(f, 'pin').value.trim() || null });
+    if (error) return say('addMsg-' + parentId, nice(error), 'bad');
+    await load(); say('topMsg', `${el(f, 'nick').value.trim()} added.`, 'good');
+  };
+}
+
+function findChild(id) { for (const p of S.data) { const c = p.children.find((x) => x.id === id); if (c) return c; } return null; }
+
+function openAssign(childId) {
+  const c = findChild(childId), box = $('form-' + childId);
+  const opts = S.themes.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}${t.status === 'draft' ? ' (draft)' : ''}</option>`).join('');
+  box.innerHTML = `<form class="form" id="as-${childId}">
+    <div class="grid2"><div><label>Theme</label><select name="theme">${opts}</select></div>
+      <div><label>Exam board</label><select name="board">${BOARDS.map((b) => `<option>${b}</option>`).join('')}</select></div></div>
+    <div id="asflav-${childId}"></div><div class="grid2" id="asnames-${childId}"></div>
+    <label>Focus topics</label><div class="topics">${S.topics.map((t) => `<label><input type="checkbox" name="topic" value="${esc(t)}" ${c.focus_topics.includes(t) ? 'checked' : ''}> ${esc(t)}</label>`).join('')}</div>
+    <p class="muted" style="margin:6px 0 0">Leave all unticked to keep their current focus topics. ${c.last_check?.finished_at ? 'Use “Results” to see the starting check gaps.' : ''}</p>
+    <div class="row" style="margin-top:12px"><button class="btn small">Save game</button><button type="button" class="btn ghost small" data-cancel>Cancel</button></div>
+    <div class="msg" id="asMsg-${childId}" role="status"></div></form>`;
+  const f = $('as-' + childId);
+  const existing = (theme) => c.games.find((g) => g.theme === theme);
+  const fill = () => {
+    const t = themeOf(el(f, 'theme').value), g = existing(el(f, 'theme').value);
+    if (g) el(f, 'board').value = g.exam_board;
+    const fls = S.flavours.filter((x) => x.theme === t.id && x.unlock_tier <= (g?.rank_tier || 1));
+    $('asflav-' + childId).innerHTML = fls.length ? `<label>Venture</label><select name="flavour"><option value="">Let them choose</option>${fls.map((x) => `<option value="${esc(x.id)}" ${g?.flavour === x.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : '';
+    $('asnames-' + childId).innerHTML = (t.custom_name_fields || []).map((nf) => `<div><label>${esc(nf.label)}</label><input type="text" name="n_${esc(nf.key)}" maxlength="24" value="${esc(g?.custom_names?.[nf.key] || '')}"></div>`).join('');
+  };
+  if (c.games[0]) el(f, 'theme').value = c.games[0].theme;
+  el(f, 'theme').onchange = fill; fill();
+  f.querySelector('[data-cancel]').onclick = () => { box.innerHTML = ''; };
+  f.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const t = themeOf(el(f, 'theme').value), names = {};
+    (t.custom_name_fields || []).forEach((nf) => { const i = f.querySelector(`[name="n_${nf.key}"]`); if (i && i.value.trim()) names[nf.key] = i.value.trim(); });
+    const topics = [...f.querySelectorAll('input[name=topic]:checked')].map((i) => i.value);
+    const { data, error } = await db.rpc('assign_game', { p_child: childId, p_theme: t.id, p_flavour: el(f, 'flavour')?.value || null,
+      p_custom_names: names, p_colours: {}, p_exam_board: el(f, 'board').value, p_tier: 'Foundation', p_focus_topics: topics.length ? topics : null });
+    if (error) return say('asMsg-' + childId, nice(error), 'bad');
+    await load();
+    say('topMsg', `${c.nickname}: ${t.name} ${data.created ? 'set up' : 'updated'}. Game link: ${new URL(playLink(t.id), location.href).href}`, 'good');
+  };
+}
+
+async function showResults(sessionId, childId) {
+  const box = $('res-' + childId);
+  if (box.innerHTML) { box.innerHTML = ''; return; }
+  const { data, error } = await db.rpc('check_results', { p_session: Number(sessionId) });
+  if (error) { box.innerHTML = `<p class="msg bad">${esc(nice(error))}</p>`; return; }
+  const cls = { secure: 'good', shaky: 'warn', gap: 'bad' };
+  box.innerHTML = `<table><tr><th>Topic</th><th>Score</th><th>Rating</th></tr>${(data.topics || []).map((t) =>
+    `<tr><td>${esc(t.topic)}</td><td>${esc(t.correct)} / ${esc(t.asked)}</td><td><span class="tag ${cls[t.rating] || ''}">${esc(t.rating)}</span></td></tr>`).join('')}</table>
+    <p class="muted">Suggested focus: ${(data.suggested_focus || []).map(esc).join(', ') || 'none'}</p>`;
+}
+
+(async () => {
+  const { data } = await db.auth.getSession();
+  if (data?.session) { S.user = data.session.user; start(); } else show('auth');
+})();
+</script>
+</body>
+</html>

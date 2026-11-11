@@ -1,0 +1,8 @@
+# Netlify builds from GitHub: run the tests, then publish only the site folders (see scripts/stage-site.js).
+# If any test fails, the deploy stops and the live site stays as it was.
+[build]
+  command = "npm ci && npm test && node scripts/stage-site.js"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"

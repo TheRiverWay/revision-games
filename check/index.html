@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starting check · LevelWise</title>
+<link rel="icon" type="image/png" href="/brand/icon.png">
+<script src="/vendor/supabase-2.119.0.js"></script>
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+:root {
+  --bg: #F6F5F1;
+  --card: #ffffff;
+  --ink: #172C5B;
+  --ink-2: #5E6886;
+  --line: #D6DDEA;
+  --accent: #0E8783;
+  --accent-ink: #ffffff;
+  --track: #E3E8F1;
+  --secure: #3F8A2E;
+  --shaky: #C25A14;
+  --gap: #C2412D;
+  --body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); }
+body { font-family: var(--body); font-size: 18px; line-height: 1.55; color: var(--ink); }
+main { max-width: 760px; margin: 0 auto; padding: 40px 20px 72px; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; font-weight: 700; }
+h1 { font-size: 34px; } h2 { font-size: 26px; } h3 { font-size: 20px; }
+p { margin: 0 0 12px; max-width: 62ch; }
+a { color: var(--accent); }
+button, input { font: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.hidden { display: none !important; }
+
+.btn { font-weight: 600; font-size: 18px; border: 0; border-radius: 8px; padding: 11px 20px; cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.btn.small { font-size: 16px; padding: 7px 14px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+label { display: block; font-weight: 600; margin: 14px 0 6px; }
+input[type=text], input[type=email], input[type=password], input[inputmode] {
+  width: 100%; max-width: 420px; padding: 11px 13px; border-radius: 8px; border: 1px solid #b9b6ad; background: #fff; color: var(--ink); font-size: 19px;
+}
+input:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 0; }
+.msg { min-height: 26px; margin-top: 12px; font-weight: 600; }
+.msg.bad { color: var(--gap); } .msg.good { color: var(--secure); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+.muted { color: var(--ink-2); }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; color: var(--ink-2); font-size: 15px; }
+.topbar button { background: none; border: 0; color: var(--ink-2); text-decoration: underline; cursor: pointer; font-size: 15px; padding: 0; }
+
+.players { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }
+.player-btn { text-align: left; padding: 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; font-size: 22px; font-weight: 600; }
+.player-btn:hover { border-color: var(--accent); }
+.pin { letter-spacing: .5em; font-size: 28px !important; max-width: 180px !important; text-align: center; }
+
+.facts { margin: 8px 0 18px; padding-left: 20px; }
+.facts li { margin: 4px 0; }
+
+.progress-top { display: flex; justify-content: space-between; font-size: 15px; color: var(--ink-2); margin-bottom: 6px; }
+.progress { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; margin-bottom: 22px; }
+.progress > div { height: 100%; background: var(--accent); transition: width .2s ease; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 14px; font-weight: 600; border: 1px solid var(--line); color: var(--ink-2); }
+.question { font-size: 24px; line-height: 1.45; margin: 14px 0 22px; max-width: 36ch; }
+.answer-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.answer-row input { flex: 1 1 220px; font-size: 24px; max-width: none; }
+.example { color: var(--ink-2); font-size: 15px; margin-top: 8px; }
+
+.results { margin: 8px 0 22px; padding: 0; list-style: none; }
+.results li { display: grid; grid-template-columns: minmax(130px, 1.2fr) 2fr auto; gap: 6px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.results .t { font-weight: 600; }
+.results .t small { display: block; font-weight: 400; color: var(--ink-2); font-size: 14px; }
+.bar { height: 12px; border-radius: 6px; background: var(--track); overflow: hidden; }
+.bar > div { height: 100%; }
+.bar.secure > div { background: var(--secure); } .bar.shaky > div { background: var(--shaky); } .bar.gap > div { background: var(--gap); }
+.rate { font-weight: 700; min-width: 112px; text-align: right; font-variant-numeric: tabular-nums; }
+.rate.secure { color: var(--secure); } .rate.shaky { color: var(--shaky); } .rate.gap { color: var(--gap); }
+.focus-list { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px; padding: 0; list-style: none; }
+.focus-list li { padding: 4px 12px; border-radius: 999px; background: #e7eef5; color: #1d3f60; font-weight: 600; }
+
+.devbar { position: fixed; left: 12px; bottom: 12px; z-index: 50; display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; background: #fff; border: 2px dashed #8a5cc4; font-size: 14px; }
+.devbar[hidden] { display: none; }
+.devbar button { border: 0; border-radius: 6px; padding: 6px 10px; font-weight: 700; cursor: pointer; background: #8a5cc4; color: #fff; }
+@media (max-width: 600px) {
+  .results li { grid-template-columns: 1fr auto; }
+  .results .bar { grid-column: 1 / -1; grid-row: 2; }
+  .question { font-size: 21px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* LevelWise brand layer */
+body { font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+h1, h2, h3 { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700; letter-spacing: 0; }
+body::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, #172C5B 0 20%, #2854AC 20% 40%, #14AFAA 40% 60%, #EE9C2B 60% 80%, #69BD56 80%); }
+.lw-logo { display: block; height: 40px; width: auto; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<main id="app">
+
+  <section id="v-auth" class="hidden">
+    <img class="lw-logo" src="/brand/logo.png" alt="LevelWise" width="117" height="40">
+    <h1>Starting check</h1>
+    <p class="muted">A short maths check to find which GCSE topics to practise first.</p>
+    <div class="panel" style="margin-top:22px">
+      <h2>Parent sign in</h2>
+      <form id="authForm">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required minlength="8">
+        <div class="row" style="margin-top:20px"><button class="btn" type="submit" id="authBtn">Sign in</button></div>
+        <p class="forgot-link" style="margin:10px 0 0;font-size:14px"><a href="/account/#forgot">Forgot your password?</a> · <a href="/account/">Your account</a></p>
+        <div class="msg" id="authMsg" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="v-who" class="hidden">
+    <div class="topbar"><span id="whoEmail"></span><button id="signOut">Sign out</button></div>
+    <h1>Who's taking the check?</h1>
+    <div class="players" id="players"></div>
+    <div class="panel" id="pinPanel" hidden>
+      <h3 id="pinTitle">Enter your PIN</h3>
+      <form id="pinForm">
+        <label for="pinIn">4-digit PIN (leave it empty if you don't have one)</label>
+        <input id="pinIn" class="pin" inputmode="numeric" maxlength="4" autocomplete="off">
+        <div class="row" style="margin-top:16px"><button class="btn" type="submit">Go</button><button class="btn ghost small" type="button" id="pinCancel">Back</button></div>
+        <div class="msg" id="pinMsg" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="v-intro" class="hidden">
+    <div class="topbar"><span id="introWho"></span><button data-go="who">Change person</button></div>
+    <h1>Starting check</h1>
+    <div class="panel">
+      <p>About 25 questions, around 20 minutes. No timer, no hints, answers aren't shown. It's to find what to practise.</p>
+      <ul class="facts">
+        <li>Have a pen and paper ready. Some questions say you can use a calculator.</li>
+        <li>If you're stuck, give your best guess and move on. That's useful too.</li>
+        <li>You can stop and come back later. You'll carry on where you left off.</li>
+      </ul>
+      <p id="resumeNote" class="muted" hidden></p>
+      <div class="row"><button class="btn" id="startBtn">Start</button></div>
+      <div class="msg" id="introMsg" role="status"></div>
+    </div>
+  </section>
+
+  <section id="v-q" class="hidden">
+    <div class="topbar"><span id="qWho"></span><button data-go="who">Stop for now</button></div>
+    <div class="progress-top"><span id="qCount">Question 1</span><span id="qTopic"></span></div>
+    <div class="progress" role="progressbar" aria-labelledby="qCount" id="qBarWrap" aria-valuemin="0"><div id="qBar" style="width:0%"></div></div>
+    <div class="panel">
+      <div class="row" id="qTags"></div>
+      <p class="question" id="qText">Loading…</p>
+      <form id="answerForm" autocomplete="off">
+        <div class="answer-row">
+          <input id="answerIn" type="text" aria-label="Your answer" autocomplete="off">
+          <button class="btn" type="submit" id="answerBtn">Next</button>
+        </div>
+        <p class="example" id="qExample"></p>
+        <div class="msg" id="qMsg" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="v-results" class="hidden">
+    <div class="topbar"><span id="rWho"></span><button data-go="who">Done</button></div>
+    <h1>Check results</h1>
+    <p class="muted" id="rSummary"></p>
+    <div class="panel">
+      <ul class="results" id="rList"></ul>
+      <p class="muted" style="font-size:15px">Secure: got them all. Shaky: got some. Gap: none right yet.</p>
+    </div>
+    <div class="panel" style="margin-top:18px">
+      <h2>Suggested focus topics</h2>
+      <div id="rFocus"></div>
+      <p class="muted" style="font-size:15px">The games will mix in more questions on these. The tutor can change them at any time.</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="devbar" id="devbar" hidden>
+  <b>TEST</b>
+  <button type="button" id="devRight">Answer right</button>
+  <button type="button" id="devWrong">Answer wrong</button>
+  <span id="devMsg" role="status"></span>
+</div>
+
+<script>
+/* ===================== Connection ===================== */
+const SUPABASE_URL = 'https://ceslgssjxcgqtgqtymqv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-EqMrnc25mY92Q4Irw8pMA_h_iS2TkB';
+const db = window.__MOCK_DB__ || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ===================== State ===================== */
+const S = { user: null, children: [], child: null, session: null, q: null };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const say = (id, text, kind = '') => { const el = $(id); el.textContent = text || ''; el.className = 'msg ' + kind; };
+const nice = (e) => (e && (e.message || e.error_description)) ? String(e.message || e.error_description).replace(/^.*?:\s(?=[A-Z])/, '') : 'Something went wrong. Try again.';
+const RATING = { secure: 'Secure', shaky: 'Shaky', gap: 'Gap' };
+
+function show(view) {
+  document.querySelectorAll('main > section').forEach((s) => s.classList.add('hidden'));
+  $('v-' + view).classList.remove('hidden');
+  window.scrollTo(0, 0);
+  devButtons();
+}
+document.addEventListener('click', (e) => { const go = e.target.closest('[data-go]'); if (go && go.dataset.go === 'who') openWho(); });
+
+/* ===================== Sign in ===================== */
+$('authForm').onsubmit = async (e) => {
+  e.preventDefault();
+  $('authBtn').disabled = true; say('authMsg', 'Signing in…');
+  const { data, error } = await db.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+  $('authBtn').disabled = false;
+  if (error) return say('authMsg', nice(error), 'bad');
+  S.user = data.user; openWho();
+};
+$('signOut').onclick = async () => { await db.auth.signOut(); S.user = null; isAdmin = false; devInit(); show('auth'); };
+
+/* ===================== Who's taking it ===================== */
+async function openWho() {
+  show('who'); devInit();
+  $('whoEmail').textContent = S.user?.email || '';
+  $('pinPanel').hidden = true;
+  const { data, error } = await db.from('children').select('id, nickname').order('created_at');
+  if (error) { $('players').innerHTML = `<p class="msg bad">${esc(nice(error))}</p>`; return; }
+  S.children = data || [];
+  $('players').innerHTML = S.children.length
+    ? S.children.map((c) => `<button class="player-btn" data-child="${esc(c.id)}">${esc(c.nickname)}</button>`).join('')
+    : '<p>No players yet. Add one from any of the games first.</p>';
+}
+$('players').onclick = (e) => {
+  const b = e.target.closest('[data-child]'); if (!b) return;
+  S.child = S.children.find((c) => c.id === b.dataset.child);
+  $('pinTitle').textContent = `${S.child.nickname}, enter your PIN`;
+  $('pinIn').value = ''; say('pinMsg', '');
+  $('pinPanel').hidden = false; $('pinIn').focus();
+};
+$('pinCancel').onclick = () => { $('pinPanel').hidden = true; };
+$('pinForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const { data, error } = await db.rpc('check_child_pin', { p_child: S.child.id, p_pin: $('pinIn').value });
+  if (error) return say('pinMsg', nice(error), 'bad');
+  if (!data) return say('pinMsg', "That PIN isn't right. Try again.", 'bad');
+  openIntro();
+};
+
+/* ===================== Intro ===================== */
+async function openIntro() {
+  show('intro');
+  $('introWho').textContent = `Check for ${S.child.nickname}`;
+  $('startBtn').disabled = true; say('introMsg', '');
+  const { data, error } = await db.rpc('start_check', { p_child: S.child.id });
+  $('startBtn').disabled = false;
+  if (error) return say('introMsg', nice(error), 'bad');
+  S.session = data;
+  const resumed = data.resumed && data.answered > 0;
+  $('resumeNote').hidden = !resumed;
+  $('resumeNote').textContent = resumed ? `You've done ${data.answered} of ${data.total} already. Carry on where you left off.` : '';
+  $('startBtn').textContent = resumed ? 'Carry on' : 'Start';
+  $('startBtn').focus();
+}
+$('startBtn').onclick = () => nextQ();
+
+/* ===================== Questions ===================== */
+/* Generic wording only uses the question's own numbers, so placeholders come from vars. */
+function fill(text, vars) {
+  return String(text).replace(/(£|€)?\{(\w+)\}/g, (m, cur, k) => {
+    let v = vars && k in vars ? vars[k] : undefined;
+    if (v === undefined || v === '') return m;
+    if (Array.isArray(v)) v = v.join(', ');
+    else if (typeof v === 'number') v = cur && !Number.isInteger(v) ? v.toFixed(2) : v.toLocaleString('en-GB', { maximumFractionDigits: 6 });
+    return (cur || '') + v;
+  }).replace(/s's\b/g, "s'").replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+}
+const EXAMPLES = {
+  'RAT-01': 'Write it like 3:4', 'RAT-02': 'Give both amounts, like 240 and 360', 'FRA-02': 'Write it like 3/8',
+  'RAT-04': 'A fraction like 3/8 or a decimal', 'FRA-03': 'A fraction like 7/12', 'PRO-01': 'A fraction like 3/8 or a decimal',
+  'PRO-04': 'A fraction like 3/8 or a decimal', 'UNI-02': 'Use the 24-hour clock, like 14:15', 'CMP-03': 'Hours and minutes, like 1h 30',
+  'ALG-04': 'Like 3n + 2', 'AVG-03': 'Give the mode, then the range, like 23, 41', 'DEC-03': 'Deal 1 or Deal 2',
+};
+async function nextQ() {
+  show('q');
+  $('qWho').textContent = S.child.nickname;
+  $('answerIn').value = ''; $('answerIn').disabled = true; $('answerBtn').disabled = true; say('qMsg', '');
+  $('qText').textContent = 'Loading…';
+  const { data, error } = await db.rpc('next_check_question', { p_session: S.session.session_id });
+  if (error) { $('qText').textContent = nice(error); return; }
+  if (data.done) return openResults();
+  S.q = data;
+  renderQ();
+}
+function renderQ() {
+  const q = S.q;
+  $('qCount').textContent = `Question ${q.number} of ${q.total}`;
+  $('qTopic').textContent = q.topic;
+  $('qBar').style.width = `${Math.round(((q.number - 1) / q.total) * 100)}%`;
+  $('qBarWrap').setAttribute('aria-valuemax', q.total); $('qBarWrap').setAttribute('aria-valuenow', q.number - 1);
+  const calc = q.calculator === 'calculator' ? 'Calculator allowed' : q.calculator === 'non-calculator' ? 'No calculator' : 'Calculator optional';
+  $('qTags').innerHTML = `<span class="tag">${calc}</span>`;
+  $('qText').textContent = fill(q.wording || '', q.vars);
+  $('qExample').textContent = EXAMPLES[q.template_id] || '';
+  $('answerIn').disabled = false; $('answerBtn').disabled = false;
+  $('answerBtn').textContent = q.number === q.total ? 'Finish' : 'Next';
+  $('answerIn').focus();
+  devButtons();
+}
+$('answerForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const given = $('answerIn').value.trim();
+  if (!S.q || $('answerBtn').disabled) return;
+  if (!given) return say('qMsg', "Type an answer, or your best guess, to move on.", 'bad');
+  $('answerBtn').disabled = true; $('answerIn').disabled = true; devButtons();
+  const { data, error } = await db.rpc('submit_check_answer', { p_attempt: S.q.attempt_id, p_given: given });
+  if (error) { say('qMsg', nice(error), 'bad'); $('answerBtn').disabled = false; $('answerIn').disabled = false; return devButtons(); }
+  if (data.done) return openResults();
+  nextQ();
+};
+
+/* ===================== Results ===================== */
+async function openResults() {
+  show('results');
+  $('rWho').textContent = S.child.nickname;
+  $('rList').innerHTML = '<li>Loading…</li>'; $('rFocus').innerHTML = '';
+  const { data, error } = await db.rpc('check_results', { p_session: S.session.session_id });
+  if (error) { $('rList').innerHTML = `<li class="msg bad">${esc(nice(error))}</li>`; return; }
+  $('rSummary').textContent = `${S.child.nickname} got ${data.correct} out of ${data.answered}. Here's how each topic went.`;
+  $('rList').innerHTML = (data.topics || []).map((t) => `<li>
+      <span class="t">${esc(t.topic)}<small>${t.correct} of ${t.asked} right</small></span>
+      <div class="bar ${esc(t.rating)}" aria-hidden="true"><div style="width:${Math.max(0, Math.min(100, Number(t.percent) || 0))}%"></div></div>
+      <span class="rate ${esc(t.rating)}">${Number(t.percent) || 0}% ${RATING[t.rating] || ''}</span></li>`).join('');
+  const sugg = data.suggested_focus || [];
+  const shaky = (data.topics || []).filter((t) => t.rating === 'shaky').map((t) => t.topic);
+  $('rFocus').innerHTML = sugg.length
+    ? `<ul class="focus-list">${sugg.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`
+    : `<p>No gaps found.${shaky.length ? ` The shaky ones are worth some practice: ${esc(shaky.join(', '))}.` : ' Everything came out secure.'}</p>`;
+}
+
+/* ===================== Test tools (admins, #dev only) ===================== */
+let isAdmin = false;
+async function devInit() {
+  if (S.user && location.hash === '#dev' && !isAdmin) { const { data } = await db.rpc('is_admin'); isAdmin = data === true; }
+  $('devbar').hidden = !(isAdmin && location.hash === '#dev');
+  devButtons();
+}
+function devButtons() {
+  const answering = !$('v-q').classList.contains('hidden') && S.q && !$('answerBtn').disabled;
+  $('devRight').disabled = !answering; $('devWrong').disabled = !answering;
+}
+window.addEventListener('hashchange', devInit);
+$('devRight').onclick = async () => {
+  const { data, error } = await db.rpc('dev_answer', { p_attempt: S.q.attempt_id });
+  if (error || !data) { $('devMsg').textContent = error ? nice(error) : 'No answer found'; return; }
+  $('answerIn').value = data; $('answerForm').requestSubmit();
+};
+$('devWrong').onclick = () => { $('answerIn').value = 'wrong on purpose'; $('answerForm').requestSubmit(); };
+
+/* ===================== Start ===================== */
+(async () => {
+  const { data } = await db.auth.getSession();
+  if (data?.session) { S.user = data.session.user; openWho(); } else show('auth');
+})();
+</script>
+</body>
+</html>

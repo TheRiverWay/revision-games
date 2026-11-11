@@ -1,0 +1,3 @@
+-- Applied 9 Nov 2026 as migration "question_review" (see Supabase migration history for full SQL).
+-- template_reviews table; is_reviewer(); review_overview(); review_template(template, verdict, note);
+-- review_variant(variant, status); admin_make_tutor(email, name).

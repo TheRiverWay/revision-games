@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tycoon Maths</title>
+<script src="/vendor/supabase-2.119.0.js"></script>
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-600.woff2') format('woff2'); font-weight:600; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+
+/* LevelWise badge palette */
+:root {
+  --navy: #172C5B; --navy-2: #22397A; --blue: #2854AC; --teal: #14AFAA; --teal-ink: #0E8783;
+  --gold: #EE9C2B; --gold-ink: #C25A14; --green: #69BD56; --green-ink: #3F8A2E;
+  --bg: #F6F5F1; --card: #FFFFFF; --line: #D6DDEA; --soft: #5E6886; --ink: #172C5B;
+  --bad: #C2412D;
+  --common: #9AA6C2; --rare: #2854AC; --epic: #8A4FD8; --legendary: #EE9C2B;
+  --display: 'Fredoka', system-ui, sans-serif;
+  --body: 'Nunito', system-ui, sans-serif;
+  --tabs-h: 72px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--bg); }
+html, body { margin: 0; min-height: 100%; }
+body { font-family: var(--body); font-size: 17px; line-height: 1.45; color: var(--ink); background: var(--bg); }
+body::before { content: ""; position: fixed; left: 0; right: 0; top: 0; height: 6px; z-index: 30;
+  background: linear-gradient(90deg, var(--navy) 0 20%, var(--blue) 20% 40%, var(--teal) 40% 60%, var(--gold) 60% 80%, var(--green) 80%); }
+main { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 18px 14px 40px; }
+body.in-game main { padding-bottom: calc(var(--tabs-h) + 28px + env(safe-area-inset-bottom)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.1; margin: 0; }
+h1 { font-size: 34px; } h2 { font-size: 26px; } h3 { font-size: 20px; }
+p { margin: 0 0 10px; }
+a { color: var(--teal-ink); font-weight: 700; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+.hidden { display: none !important; }
+
+.btn { font-family: var(--display); font-weight: 600; font-size: 20px; border: 0; border-radius: 16px; padding: 12px 22px; cursor: pointer;
+  background: var(--gold); color: var(--navy); box-shadow: 0 5px 0 #B86E10; transition: transform .08s, box-shadow .08s; }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #B86E10; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.go { background: var(--green); color: #0F2A08; box-shadow: 0 5px 0 var(--green-ink); }
+.btn.go:active { box-shadow: 0 1px 0 var(--green-ink); }
+.btn.ghost { background: var(--card); color: var(--navy); box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
+.btn.ghost:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px var(--line); }
+.btn.small { font-size: 16px; padding: 8px 14px; border-radius: 12px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+label { display: block; font-weight: 700; margin: 14px 0 6px; }
+input[type=text], input[type=email], input[type=password], input[inputmode] {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); font-size: 18px; }
+input:focus { border-color: var(--teal); outline: none; }
+.msg { min-height: 24px; margin-top: 10px; font-weight: 700; }
+.msg.bad { color: var(--bad); } .msg.good { color: var(--green-ink); }
+.panel { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 20px; }
+
+/* sign-in and who's playing */
+.brand { display: flex; justify-content: center; margin: 8px 0 6px; }
+.brand img { height: 52px; width: auto; }
+.intro { text-align: center; margin: 14px 0 20px; }
+.intro h1 { font-size: 40px; }
+.intro .eyebrow { font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-ink); font-size: 13px; margin: 6px 0; }
+.intro p { color: var(--soft); }
+.sound-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 2px; }
+.toggle { font: inherit; font-size: 14px; font-weight: 700; padding: 6px 14px 6px 34px; border-radius: 999px; border: 2px solid var(--line); background: var(--card); color: var(--soft); cursor: pointer; position: relative; }
+.toggle::before { content: ""; position: absolute; left: 10px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; border: 2px solid var(--line); background: #fff; }
+.toggle[aria-pressed="true"] { color: var(--teal-ink); border-color: var(--teal); }
+.toggle[aria-pressed="true"]::before { background: var(--teal); border-color: var(--teal); box-shadow: inset 0 0 0 3px #fff; }
+.mute { font: inherit; border: 2px solid var(--line); background: var(--card); border-radius: 999px; width: 36px; height: 32px; cursor: pointer; font-size: 16px; line-height: 1; color: var(--navy); }
+.mute::after { content: "♪"; }
+.mute[aria-pressed="false"] { opacity: .5; }
+.mute[aria-pressed="false"]::after { content: "♪̸"; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; color: var(--soft); font-size: 15px; min-height: 32px; }
+.topbar button { background: none; border: 0; color: var(--teal-ink); font-weight: 700; cursor: pointer; font-size: 15px; padding: 4px 0; }
+.topbar [data-go="hub"]::before { content: "‹ "; }
+.players { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 16px 0; }
+.player-btn { text-align: left; padding: 16px; border-radius: 18px; border: 2px solid var(--line); background: var(--card); cursor: pointer; box-shadow: 0 4px 0 var(--line); }
+.player-btn b { display: block; font-family: var(--display); font-size: 26px; font-weight: 600; }
+.player-btn span { color: var(--soft); font-size: 14px; }
+.pin { letter-spacing: .5em; font-size: 28px !important; max-width: 200px !important; text-align: center; }
+
+/* status pills shown at the top of game screens */
+.hud { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--navy); color: #fff;
+  font-family: var(--display); font-weight: 600; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill.light { background: var(--card); color: var(--navy); box-shadow: inset 0 0 0 2px var(--line); }
+.pill .coin { width: 18px; height: 18px; border-radius: 50%; background: var(--gold); box-shadow: inset 0 -2px 0 #B86E10; display: inline-block; }
+.minirank { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--navy); }
+.minirank .bar { width: 72px; height: 10px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.minirank .bar i { display: block; height: 100%; background: var(--teal); }
+
+/* HOME: the world fills the screen */
+.board { border-radius: 26px; overflow: hidden; background: var(--card); border: 2px solid var(--line); box-shadow: 0 10px 30px rgba(23,44,91,.12); }
+.scene { position: relative; aspect-ratio: 4 / 3.6; overflow: hidden; }
+.scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scene .hud { position: absolute; left: 12px; right: 12px; top: 12px; justify-content: space-between; z-index: 2; }
+.scene .sign { position: absolute; left: 50%; top: 54px; transform: translateX(-50%); z-index: 2; width: min(78%, 420px); text-align: center;
+  background: rgba(255,255,255,.94); border-radius: 16px; padding: 8px 14px; box-shadow: 0 6px 18px rgba(23,44,91,.18); border-bottom: 4px solid var(--gold); }
+.sign .biz { font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1.05; color: var(--navy); overflow-wrap: anywhere; }
+.sign .sub { color: var(--soft); font-size: 14px; }
+.sign .sub b { color: var(--navy); }
+.scene .equipped { position: absolute; left: 12px; bottom: 12px; z-index: 2; display: flex; gap: 6px; }
+.scene .equipped span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: rgba(255,255,255,.9); font-size: 22px; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+.rank { padding: 14px 16px 16px; }
+.rank-top { display: flex; flex-wrap: wrap; gap: 2px 12px; justify-content: space-between; font-family: var(--display); font-size: 18px; font-weight: 600; }
+.rank-top em { font-style: normal; color: var(--soft); font-size: 15px; }
+.pips { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin-top: 8px; }
+.pip { height: 10px; border-radius: 5px; background: var(--line); }
+.pip.on { background: var(--teal); }
+.pip.now { background: linear-gradient(90deg, var(--teal) var(--p), var(--line) var(--p)); }
+.ladder { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; }
+.ladder span { padding: 2px 9px; border-radius: 999px; background: #EEF2F8; color: var(--soft); }
+.ladder span.done { background: #DDF3F1; color: var(--teal-ink); }
+.ladder span.now { background: var(--gold); color: var(--navy); font-weight: 700; }
+
+.hub-grid { display: grid; gap: 14px; margin-top: 16px; }
+.hub-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hub-actions .btn { text-align: left; padding: 14px 16px; }
+.hub-actions .btn small { display: block; font-family: var(--body); font-size: 13px; font-weight: 600; opacity: .8; margin-top: 2px; }
+.hub-actions #playBtn { grid-column: 1 / -1; text-align: center; font-size: 30px; padding: 18px; border-radius: 20px; }
+.hub-actions #playBtn small { font-size: 14px; }
+#hubSide h3 { font-size: 18px; }
+
+/* PLAY: question centre stage, number pad for thumbs */
+.strip { position: relative; height: 76px; border-radius: 20px; overflow: hidden; margin-bottom: 12px; border: 2px solid var(--line); }
+.strip svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.strip .strip-full { display: none; }
+.reward { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); z-index: 2; padding: 6px 14px; border-radius: 999px;
+  background: #fff; color: var(--green-ink); font-family: var(--display); font-weight: 700; font-size: 22px; box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  animation: pop 1.6s ease forwards; }
+@keyframes pop { 0% { opacity: 0; transform: translateY(-20%) scale(.6); } 15% { opacity: 1; transform: translateY(-50%) scale(1.12); } 30% { transform: translateY(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-110%) scale(1); } }
+.qcard { background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: 0 8px 22px rgba(23,44,91,.08); }
+.q-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; background: #EEF2F8; color: var(--soft); }
+.tag.calc { background: #E2EAF8; color: var(--blue); } .tag.nocalc { background: #FDEBDD; color: var(--gold-ink); }
+.question { font-family: var(--display); font-weight: 600; font-size: 23px; line-height: 1.3; margin: 4px 0 14px; color: var(--navy); }
+.switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--soft); font-weight: 700; margin: 0; }
+.switch input { width: 18px; height: 18px; accent-color: var(--teal); }
+.answer-row { display: flex; gap: 10px; }
+.answer-row input { flex: 1; font-family: var(--display); font-weight: 600; font-size: 28px; text-align: center; padding: 10px; border-radius: 14px;
+  border: 3px dashed var(--line); background: #FAFBFD; }
+.answer-row input:focus { border-style: solid; border-color: var(--teal); }
+.answer-row .btn { padding: 10px 18px; font-size: 22px; flex: 0 0 auto; }
+.tip-row { display: flex; gap: 12px; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-top: 8px; }
+.example { color: var(--soft); font-size: 14px; margin: 0; }
+.tip-btn { background: none; border: 0; padding: 0; color: var(--teal-ink); font-weight: 700; font-size: 14px; text-decoration: underline; cursor: pointer; }
+.tip { margin: 10px 0 0; padding: 10px 14px; border-left: 4px solid var(--teal); background: #EAF7F6; border-radius: 0 12px 12px 0; }
+.pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 12px; }
+.pad button { height: 52px; border: 0; border-radius: 14px; background: var(--card); color: var(--navy); font-family: var(--display); font-weight: 600; font-size: 24px;
+  box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); cursor: pointer; touch-action: manipulation; }
+.pad button:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px var(--line), 0 1px 0 var(--line); }
+.pad button.sym { color: var(--blue); background: #F1F5FC; }
+.pad button.del { color: var(--gold-ink); }
+.pad .check { grid-column: 1 / -1; height: 60px; font-size: 26px; border-radius: 16px; }
+.pad .kbd { grid-column: 1 / -1; height: auto; background: none; box-shadow: none; font-family: var(--body); font-size: 14px; color: var(--teal-ink); text-decoration: underline; padding: 2px; }
+.pad[hidden] { display: none; }
+.result { margin-top: 14px; padding: 16px; border-radius: 18px; }
+.result.right { background: #EAF6E4; border: 2px solid var(--green); }
+.result.wrong { background: #FCEDEA; border: 2px solid #E9A598; }
+.result h3 { font-size: 26px; margin-bottom: 6px; }
+.working { margin: 10px 0 14px; padding-left: 0; list-style: none; counter-reset: s; }
+.working li { counter-increment: s; display: flex; gap: 10px; margin: 6px 0; align-items: baseline; font-variant-numeric: tabular-nums; }
+.working li::before { content: counter(s); font-family: var(--display); font-weight: 700; color: var(--teal-ink); font-size: 20px; min-width: 16px; }
+.working li:last-child { font-weight: 700; }
+details.see-working summary { cursor: pointer; color: var(--teal-ink); font-weight: 700; margin: 4px 0; }
+.levelup { margin-top: 12px; padding: 12px 16px; border-radius: 14px; background: var(--gold); color: var(--navy); font-family: var(--display); font-weight: 700; font-size: 22px; }
+
+/* item cards */
+.card { --rc: var(--common); position: relative; aspect-ratio: 3 / 4; border-radius: 16px; padding: 10px; color: var(--navy);
+  background: linear-gradient(170deg, color-mix(in srgb, var(--rc) 22%, #fff), #fff 70%); border: 2px solid var(--rc); overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; }
+.card[data-r=rare] { --rc: var(--rare); } .card[data-r=epic] { --rc: var(--epic); }
+.card[data-r=legendary] { --rc: var(--legendary); box-shadow: 0 0 16px rgba(238,156,43,.5); }
+.card .icon { font-size: 40px; line-height: 1; }
+.card .name { font-family: var(--display); font-weight: 600; font-size: 17px; line-height: 1.1; }
+.card .meta { font-size: 12px; color: var(--soft); }
+.card.locked { --rc: var(--line); filter: grayscale(1); opacity: .45; }
+.card.locked .name, .card.locked .meta { visibility: hidden; }
+.card.equipped { outline: 3px solid var(--teal); outline-offset: 2px; }
+.card.equipped::after { content: "In use"; position: absolute; top: 8px; right: 8px; padding: 1px 8px; border-radius: 999px; background: var(--teal); color: #fff; font-size: 11px; font-weight: 700; }
+button.card { cursor: pointer; text-align: left; font: inherit; }
+
+/* crates */
+.pack-stage { display: grid; place-items: center; min-height: 260px; }
+.pack { width: 190px; aspect-ratio: 1; border-radius: 18px; display: grid; place-items: center; text-align: center;
+  background: linear-gradient(90deg, transparent 45%, #8A5A2B 45% 55%, transparent 55%), repeating-linear-gradient(0deg, #D9984F 0 22px, #C9873F 22px 24px);
+  color: #2A1700; font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.05; box-shadow: 0 16px 36px rgba(23,44,91,.25); border: 4px solid #8A5A2B; }
+.pack span { background: #fff; padding: 4px 10px; border-radius: 8px; }
+.pack.shake { animation: shake .6s ease-in-out; }
+@keyframes shake { 0%,100% { transform: rotate(0); } 20% { transform: rotate(-6deg) scale(1.03); } 40% { transform: rotate(6deg) scale(1.06); } 60% { transform: rotate(-4deg) scale(1.08); } 80% { transform: rotate(3deg) scale(1.1); } }
+.reveal { display: grid; grid-template-columns: repeat(3, minmax(0, 170px)); gap: 10px; justify-content: center; }
+.reveal .card { animation: flip .5s ease both; }
+.reveal .card:nth-child(2) { animation-delay: .35s; } .reveal .card:nth-child(3) { animation-delay: .7s; }
+@keyframes flip { from { transform: rotateY(90deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.odds { display: flex; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--soft); margin: 8px 0 14px; }
+.odds b { color: var(--navy); }
+.pity { font-size: 14px; color: var(--soft); margin: -6px 0 14px; }
+.pity b { color: var(--epic); } .pity b.leg { color: var(--legendary-ink, #C25A14); }
+.big-reveal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: rgba(23,44,91,.82); }
+.big-reveal .glow { position: absolute; width: 520px; height: 520px; max-width: 120vw; max-height: 120vw; border-radius: 50%;
+  background: radial-gradient(circle, var(--gc, #EE9C2B) 0%, transparent 65%); opacity: .55; animation: spin 6s linear infinite, breathe 2s ease-in-out infinite; }
+.big-reveal .inner { position: relative; text-align: center; color: #fff; max-width: 340px; animation: rise .6s cubic-bezier(.2,1.4,.4,1) both; }
+.big-reveal .kicker { font-family: var(--display); font-size: 28px; letter-spacing: .04em; color: var(--gc, #EE9C2B); text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+.big-reveal .card { margin: 14px auto; max-width: 220px; transform: scale(1.08); }
+.big-reveal .story { font-size: 16px; line-height: 1.5; margin: 10px 0 18px; opacity: .95; }
+.big-reveal .row { justify-content: center; }
+@keyframes spin { to { rotate: 360deg; } } @keyframes breathe { 50% { scale: 1.12; } }
+@keyframes rise { from { opacity: 0; transform: translateY(30px) scale(.8); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .big-reveal .glow, .big-reveal .inner { animation: none; } }
+.set-head { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 0; padding-top: 10px; border-top: 2px solid var(--line); }
+.set-head h4 { margin: 0; font-size: 17px; } .set-head span { font-size: 13px; color: var(--soft); font-weight: 700; }
+.set-head.locked h4, .set-head.locked span { color: var(--soft); opacity: .7; }
+
+/* collection */
+.slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 6px; }
+.slot { text-align: center; }
+.slot h4 { margin: 0 0 6px; font-size: 13px; color: var(--soft); font-weight: 700; }
+.slot .empty { border: 2px dashed var(--line); border-radius: 16px; aspect-ratio: 3/4; display: grid; place-items: center; color: var(--soft); font-size: 13px; padding: 8px; background: var(--card); }
+.slot .card .icon { font-size: 30px; } .slot .card .name { font-size: 14px; }
+.slot button.slotbtn { all: unset; display: block; width: 100%; cursor: pointer; border-radius: 16px; }
+.slot button.slotbtn:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.slot.open .empty, .slot.open .card { outline: 3px solid var(--gold); outline-offset: 2px; }
+.slot .empty b { display: block; color: var(--teal-ink); font-size: 12px; margin-top: 4px; }
+.picker { background: var(--card); border: 2px solid var(--line); border-radius: 20px; padding: 14px; margin: 8px 0 4px; }
+.picker h3 { margin: 0 0 4px; font-size: 18px; }
+.picker .row { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 10px; }
+.picker .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.slot button.unequip { margin-top: 4px; background: var(--card); border: 2px solid var(--line); border-radius: 999px; font-size: 12px; padding: 2px 10px; cursor: pointer; font-weight: 700; }
+.collection { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 14px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.filters button { border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-weight: 700; }
+.filters button[aria-pressed=true] { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+/* ventures */
+.ventures { display: grid; gap: 16px; margin-top: 14px; }
+.v-tier h3 { font-size: 20px; margin-bottom: 8px; }
+.v-tier h3 em { font-style: normal; font-size: 14px; color: var(--soft); font-family: var(--body); font-weight: 600; margin-left: 8px; }
+.v-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.venture { text-align: left; padding: 14px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); cursor: pointer; box-shadow: 0 3px 0 var(--line); }
+.venture b { display: block; font-family: var(--display); font-size: 20px; font-weight: 600; line-height: 1.1; }
+.venture span { color: var(--soft); font-size: 13px; }
+.venture.current { border-color: var(--teal); box-shadow: inset 0 0 0 1px var(--teal); }
+.venture:disabled { opacity: .4; cursor: not-allowed; }
+.venture.new { border-color: var(--gold); }
+
+/* bottom tab bar */
+.tabs { position: fixed; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 40;
+  width: min(540px, calc(100% - 20px)); height: var(--tabs-h); display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--navy); border-radius: 22px; padding: 6px; box-shadow: 0 10px 28px rgba(23,44,91,.35); }
+.tabs[hidden] { display: none; }
+.tabs button { border: 0; background: none; color: #C9D2E6; border-radius: 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-family: var(--display); font-weight: 600; font-size: 13px; }
+.tabs button .ti { font-size: 24px; line-height: 1; }
+.tabs button[aria-current=page] { background: var(--teal); color: #fff; }
+
+.devbar { position: fixed; left: 10px; top: 14px; z-index: 50; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 6px 8px; border-radius: 10px; background: #2a0d3d; border: 2px dashed #c48cff; font-size: 13px; color: #eee; max-width: calc(100% - 20px); }
+.devbar[hidden] { display: none; }
+.devbar b { color: #c48cff; font-family: var(--display); }
+.devbar button { border: 0; border-radius: 6px; padding: 5px 9px; font-weight: 700; cursor: pointer; background: #c48cff; color: #1a0726; }
+.devbar button:disabled { opacity: .4; cursor: not-allowed; }
+
+/* tablets and laptops: same game, more room */
+@media (min-width: 900px) {
+  main { max-width: 1080px; padding: 26px 24px 40px; }
+  h1 { font-size: 40px; }
+  #v-auth, #v-who, #v-setup { max-width: 560px; margin: 0 auto; }
+  .hub-wrap { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: start; }
+  .hub-grid { margin-top: 0; }
+  .scene { aspect-ratio: 16 / 10; }
+  .sign .biz { font-size: 28px; }
+  .play-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  .play-wrap .strip { height: auto; aspect-ratio: 4 / 3.2; margin: 0; }
+  .play-wrap .strip .strip-wide { display: none; }
+  .play-wrap .strip .strip-full { display: block; }
+  .question { font-size: 26px; }
+  .slots { grid-template-columns: repeat(6, 1fr); }
+  .collection { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+@media (max-width: 380px) {
+  .question { font-size: 20px; } .pad button { height: 48px; font-size: 21px; }
+  .hub-actions #playBtn { font-size: 26px; } .sign .biz { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<main id="app">
+
+  <section id="v-auth" class="hidden">
+    <div class="brand"><img src="/brand/logo.png" alt="LevelWise" width="152" height="52"></div>
+    <div class="intro">
+      <h1 id="introTitle">Tycoon Maths</h1>
+      <p class="eyebrow">A LevelWise game</p>
+      <p id="introBlurb">Build a business from nothing by answering GCSE maths questions.</p>
+    </div>
+    <div class="panel">
+      <h2 id="authTitle">Parent sign in</h2>
+      <form id="authForm">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required minlength="8">
+        <div class="row" style="margin-top:18px">
+          <button class="btn" type="submit" id="authBtn">Sign in</button>
+          <button class="btn ghost small" type="button" id="authSwitch">Create an account</button>
+        </div>
+        <p class="forgot-link" style="margin:12px 0 0;font-size:14px"><a href="/account/#forgot">Forgot your password?</a> · <a href="/account/">Your account</a></p>
+        <div class="msg" id="authMsg" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="v-who" class="hidden">
+    <div class="topbar"><span id="whoEmail"></span><button id="signOut">Sign out</button></div>
+    <div class="brand"><img src="/brand/logo.png" alt="LevelWise" width="140" height="48"></div>
+    <h1>Who's playing?</h1>
+    <div class="players" id="players"></div>
+    <div class="panel" id="pinPanel" hidden>
+      <h3 id="pinTitle">Enter your PIN</h3>
+      <form id="pinForm">
+        <label for="pinIn">4-digit PIN (leave it empty if you don't have one)</label>
+        <input id="pinIn" class="pin" inputmode="numeric" maxlength="4" autocomplete="off">
+        <div class="row" style="margin-top:16px"><button class="btn" type="submit">Go</button><button class="btn ghost small" type="button" id="pinCancel">Back</button></div>
+        <div class="msg" id="pinMsg" role="status"></div>
+      </form>
+    </div>
+    <details class="panel" id="addPlayer" style="margin-top:16px">
+      <summary style="cursor:pointer;font-family:var(--display);font-size:22px;font-weight:600">Add a player</summary>
+      <form id="addForm">
+        <label for="addName">First name or nickname</label>
+        <input id="addName" type="text" maxlength="20" required>
+        <label for="addPin">4-digit PIN (optional, stops brothers and sisters playing as them)</label>
+        <input id="addPin" class="pin" inputmode="numeric" maxlength="4" autocomplete="off">
+        <div class="row" style="margin-top:16px"><button class="btn" type="submit">Add player</button></div>
+        <div class="msg" id="addMsg" role="status"></div>
+      </form>
+    </details>
+  </section>
+
+  <!-- New business: names first, then the first venture -->
+  <section id="v-setup" class="hidden">
+    <div class="topbar"><span></span><button data-go="who">Change player</button></div>
+    <h1 id="setupTitle">Start your business</h1>
+    <p id="setupHelp" style="color:var(--soft)">Pick your names. You'll choose what to sell next.</p>
+    <div class="panel">
+      <form id="setupForm">
+        <div id="nameFields"></div>
+        <div class="row" style="margin-top:18px"><button class="btn" type="submit">Next</button></div>
+        <div class="msg" id="setupMsg" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- HOME: their world fills the screen -->
+  <section id="v-hub" class="hidden">
+    <div class="topbar"><span id="hubWho"></span><button data-go="who">Change player</button></div>
+    <div class="hub-wrap">
+      <div class="board" id="board"></div>
+      <div class="hub-grid">
+        <div class="hub-actions">
+          <button class="btn go" data-go="play" id="playBtn">Open for business<small>Answer questions, earn cash, grow your business</small></button>
+          <button class="btn ghost" data-go="pack"><span id="crateName">Supply crate</span><small id="packCost"></small></button>
+          <button class="btn ghost" data-go="kit"><span id="kitName">Your kit</span><small id="kitCount"></small></button>
+          <button class="btn ghost" data-go="venture" id="ventureBtn" style="grid-column:1 / -1">Change venture<small id="ventureNote"></small></button>
+        </div>
+        <div class="sound-row" role="group" aria-label="Sound">
+          <button class="toggle" id="musicToggle" aria-pressed="true">Music</button>
+          <button class="toggle" id="fxToggle" aria-pressed="true">Sound effects</button>
+        </div>
+        <div class="panel" id="hubSide"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY: the question takes centre stage -->
+  <section id="v-play" class="hidden">
+    <div class="topbar"><button data-go="hub">Back to business</button><span class="hud"><button class="mute" id="playMute" aria-pressed="true" aria-label="Music"></button><span class="pill" id="playCash"></span><span class="minirank" id="playRank"></span></span></div>
+    <div class="play-wrap">
+      <div class="strip" id="playStrip" aria-hidden="true"></div>
+      <div class="qcard" id="qPanel">
+        <div class="q-head">
+          <div class="row" id="qTags"></div>
+          <label class="switch"><input type="checkbox" id="examMode"> Exam wording (+2)</label>
+        </div>
+        <p class="question" id="qText">Loading…</p>
+        <form id="answerForm" autocomplete="off">
+          <div class="answer-row">
+            <input id="answerIn" type="text" aria-label="Your answer" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Your answer">
+            <button class="btn go" type="submit" id="answerBtn">Check</button>
+          </div>
+          <div class="tip-row"><p class="example" id="qExample"></p><button type="button" class="tip-btn" id="tipBtn" hidden>Need a tip?</button></div>
+          <p class="tip" id="qTip" hidden></p>
+          <div class="pad" id="pad" role="group" aria-label="Number pad">
+            <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button><button type="button" class="del" data-k="del" aria-label="Delete">⌫</button>
+            <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button><button type="button" class="sym" data-k=":">:</button>
+            <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button><button type="button" class="sym" data-k="/">/</button>
+            <button type="button" class="sym" data-k=".">.</button><button type="button" data-k="0">0</button><button type="button" class="sym" data-k=", ">,</button><button type="button" class="sym" data-k="-">−</button>
+            <button type="button" class="kbd" id="kbdBtn">Need letters? Use the keyboard</button>
+          </div>
+        </form>
+        <div id="qResult"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-pack" class="hidden">
+    <div class="topbar"><button data-go="hub">Back to business</button><span class="pill" id="packCash"></span></div>
+    <h1 id="packTitle">Supply crate</h1>
+    <div class="odds" id="odds"></div>
+    <div class="pack-stage" id="packStage"></div>
+    <div class="row" style="justify-content:center;margin-top:18px" id="packButtons"></div>
+    <div class="msg" id="packMsg" role="status" style="text-align:center"></div>
+  </section>
+
+  <section id="v-kit" class="hidden">
+    <div class="topbar"><button data-go="hub">Back to business</button><span class="pill light" id="kitBonus"></span></div>
+    <h1 id="kitTitle">Your kit</h1>
+    <p id="kitHelp" style="color:var(--soft)">Tap a slot to choose what goes in it. Gear earns extra cash on every right answer. The rest is just for looking good.</p>
+    <div class="slots" id="slots"></div>
+    <div class="picker" id="picker" hidden></div>
+    <h3 style="margin-top:20px">Collection</h3>
+    <div class="filters" id="filters"></div>
+    <div class="collection" id="collection"></div>
+  </section>
+
+  <section id="v-venture" class="hidden">
+    <div class="topbar"><button data-go="hub" id="ventureBack">Back to business</button><span></span></div>
+    <h1 id="ventureTitle">Choose your venture</h1>
+    <p id="ventureHelp" style="color:var(--soft)">What are you going to sell? Grow your business to unlock more.</p>
+    <div class="ventures" id="ventures"></div>
+    <div class="msg" id="ventureMsg" role="status"></div>
+  </section>
+
+</main>
+
+<nav class="tabs" id="tabs" hidden aria-label="Game">
+  <button type="button" data-tab="hub"><span class="ti" aria-hidden="true">🏠</span>Home</button>
+  <button type="button" data-tab="play"><span class="ti" aria-hidden="true">▶️</span>Play</button>
+  <button type="button" data-tab="pack"><span class="ti" aria-hidden="true">📦</span>Crates</button>
+  <button type="button" data-tab="kit"><span class="ti" aria-hidden="true">🗂️</span>Collection</button>
+</nav>
+
+<div class="devbar" id="devbar" hidden>
+  <b>TEST</b>
+  <button type="button" id="devRight">Answer right</button>
+  <button type="button" id="devWrong">Answer wrong</button>
+  <button type="button" id="devCredits">+500</button>
+  <span id="devMsg" role="status"></span>
+</div>
+
+<script>
+/* ===================== Connection ===================== */
+const SUPABASE_URL = 'https://ceslgssjxcgqtgqtymqv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-EqMrnc25mY92Q4Irw8pMA_h_iS2TkB';
+const SUBJECT = 'maths';
+/* One page for every tycoon skin: ?skin=garage. Everything else comes from the themes table. */
+const THEME = new URLSearchParams(location.search).get('skin') || 'restaurant';
+/* Shown before sign-in, when the database can't be read yet. */
+const SKIN_COPY = {
+  restaurant: { title: 'Kitchen Tycoon', blurb: 'Start with a food van and build a food empire, one GCSE maths question at a time.' },
+  garage: { title: 'Garage Tycoon', blurb: 'Fix cars on your driveway and build a motor empire, one GCSE maths question at a time.' },
+  military: { title: 'Field Command', blurb: 'Lead your squad from Recruit to General on rescue and engineering missions, one GCSE maths question at a time.', setup: 'Form your squad',
+    play: 'Start a mission', playSub: 'Answer questions, earn supply points, win promotions', back: 'Back to base', grown: 'Promoted to', gearEarns: 'supply points' },
+};
+/* Wording that changes per skin; anything a skin leaves out uses the business wording. */
+const COPY = { play: 'Open for business', playSub: 'Answer questions, earn cash, grow your business', back: 'Back to business',
+  grown: "You've grown into a", gearEarns: 'cash', ...(SKIN_COPY[THEME] || {}) };
+const SLOT_ICON = { oven: '🔥', fryer: '🍳', delivery: '🛵', decor: '🪴', uniform: '👕', sign: '🪧',
+  lift: '🚗', toolkit: '🧰', truck: '🚚', paint: '🎨', overalls: '🦺',
+  vehicle: '🚙', radio: '📻', boots: '🥾', badge: '🎖️', camo: '🌿', base: '🏕️' };
+
+const db = window.__MOCK_DB__ || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ===================== State ===================== */
+const S = { user: null, children: [], child: null, game: null, theme: null, flavours: [], wording: {},
+  rank: null, perks: null, collectibles: [], owned: new Map(), crate: null, q: null, filter: 'all', ventureReason: '' };
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const say = (id, text, kind = '') => { const el = $(id); el.textContent = text || ''; el.className = 'msg ' + kind; };
+const RAR = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
+const RORDER = ['common', 'rare', 'epic', 'legendary'];
+// Turn a Supabase error into something a parent can read. Database-level messages
+// (row level security, constraints) are never shown raw.
+const nice = (e) => {
+  const raw = e && (e.message || e.error_description);
+  if (!raw) return 'Something went wrong. Try again.';
+  if (/row-level security|violates|permission denied|duplicate key|relation .* does not exist/i.test(raw)) {
+    return "That didn't work on our side, not yours. Please try again, or email hello@levelwise.co.uk and we'll sort it.";
+  }
+  return String(raw).replace(/^.*?:\s(?=[A-Z])/, '');
+};
+const money = (n) => (S.theme?.currency_name || 'cash') === 'cash' ? `£${Number(n).toLocaleString('en-GB')}` : `${n} ${S.theme.currency_name}`;
+const slotLabel = (key) => (S.theme?.slots || []).find((s) => s.key === key)?.label || key;
+const flavour = () => S.flavours.find((f) => f.id === S.game?.flavour) || null;
+const tierName = (n) => (S.theme?.tier_names || [])[n - 1] || `Stage ${n}`;
+const names = () => S.game?.custom_names || {};
+
+(() => { const c = SKIN_COPY[THEME]; if (c) { document.title = c.title; $('introTitle').textContent = c.title; $('introBlurb').textContent = c.blurb; } })();
+(() => {
+  $('playBtn').innerHTML = `${esc(COPY.play)}<small>${esc(COPY.playSub)}</small>`;
+  document.querySelectorAll('.topbar [data-go="hub"]').forEach((b) => { b.textContent = COPY.back; });
+  $('kitHelp').textContent = `Tap anything you've collected to use it. Gear earns extra ${COPY.gearEarns} on every right answer. The rest is just for looking good.`;
+})();
+
+/* ===================== Scene art (original, drawn in code) ===================== */
+const SKY = '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3F4"/><stop offset="1" stop-color="#EEF8FC"/></linearGradient></defs><rect width="400" height="340" fill="url(#sky)"/><circle cx="330" cy="62" r="30" fill="#FFD36B"/><circle cx="330" cy="62" r="42" fill="#FFD36B" opacity=".25"/>';
+const PERSON = (x, y, shirt, hair) => `<g transform="translate(${x} ${y})"><rect x="-11" y="0" width="22" height="34" rx="10" fill="${shirt}"/><circle cx="0" cy="-10" r="11" fill="#F2C9A0"/><path d="M-11 -12 a11 11 0 0 1 22 0 z" fill="${hair}"/><rect x="-9" y="32" width="7" height="16" rx="3" fill="#172C5B"/><rect x="2" y="32" width="7" height="16" rx="3" fill="#172C5B"/></g>`;
+const SCENES = {
+  restaurant: () => `${SKY}
+    <g fill="#D6E4F4"><rect x="0" y="120" width="70" height="120" rx="6"/><rect x="62" y="96" width="60" height="144" rx="6"/><rect x="250" y="110" width="80" height="130" rx="6"/><rect x="322" y="132" width="78" height="108" rx="6"/></g>
+    <g fill="#EEF4FB"><rect x="12" y="136" width="14" height="14" rx="2"/><rect x="36" y="136" width="14" height="14" rx="2"/><rect x="76" y="114" width="14" height="14" rx="2"/><rect x="98" y="114" width="14" height="14" rx="2"/><rect x="266" y="126" width="14" height="14" rx="2"/><rect x="292" y="126" width="14" height="14" rx="2"/></g>
+    <rect y="236" width="400" height="104" fill="#E3E8F1"/><rect y="292" width="400" height="48" fill="#5E6886"/><g fill="#fff" opacity=".8"><rect x="20" y="314" width="40" height="5" rx="2"/><rect x="120" y="314" width="40" height="5" rx="2"/><rect x="220" y="314" width="40" height="5" rx="2"/><rect x="320" y="314" width="40" height="5" rx="2"/></g>
+    <circle cx="44" cy="214" r="26" fill="#69BD56"/><rect x="40" y="214" width="8" height="30" fill="#8A5A2B"/>
+    <g transform="translate(96 132)">
+      <rect x="0" y="22" width="196" height="118" rx="22" fill="#fff" stroke="#172C5B" stroke-width="4"/>
+      <rect x="0" y="104" width="196" height="16" fill="#14AFAA"/>
+      <rect x="22" y="46" width="112" height="50" rx="8" fill="#22397A"/><rect x="22" y="86" width="112" height="10" fill="#8A5A2B"/>
+      <path d="M14 46 h128 l-8 -22 h-112 z" fill="#EE9C2B"/>
+      <g fill="#fff"><path d="M30 46 l4 -22 h14 l-4 22 z"/><path d="M62 46 l2 -22 h14 l-2 22 z"/><path d="M94 46 v-22 h14 v22 z"/><path d="M124 46 l-2 -22 h14 l2 22 z"/></g>
+      <rect x="146" y="46" width="38" height="40" rx="8" fill="#BFE3F4" stroke="#172C5B" stroke-width="3"/>
+      <circle cx="44" cy="142" r="17" fill="#172C5B"/><circle cx="44" cy="142" r="7" fill="#D6DDEA"/><circle cx="160" cy="142" r="17" fill="#172C5B"/><circle cx="160" cy="142" r="7" fill="#D6DDEA"/>
+    </g>
+    <g transform="translate(60 230)"><rect x="-16" y="-38" width="32" height="40" rx="4" fill="#22397A"/><g fill="#fff" opacity=".85"><rect x="-10" y="-30" width="20" height="3"/><rect x="-10" y="-22" width="16" height="3"/><rect x="-10" y="-14" width="18" height="3"/></g><rect x="-3" y="2" width="6" height="12" fill="#8A5A2B"/></g>
+    ${PERSON(318, 224, '#2854AC', '#5A3A22')}${PERSON(350, 230, '#EE9C2B', '#1F1A17')}`,
+  military: () => `${SKY}
+    <path d="M0 200 Q100 150 200 185 T400 170 V340 H0 Z" fill="#8FD17A"/><path d="M0 238 Q120 200 260 232 T400 222 V340 H0 Z" fill="#69BD56"/>
+    <path d="M150 340 Q190 290 260 268 T400 250" stroke="#D9B57A" stroke-width="26" fill="none" stroke-linecap="round"/>
+    <g transform="translate(300 96)"><rect x="-3" y="0" width="6" height="120" fill="#5E6886"/><path d="M3 4 h58 v36 h-58 z" fill="#22397A"/><path d="M32 12 l4 9 10 1 -8 6 3 10 -9 -6 -9 6 3 -10 -8 -6 10 -1 z" fill="#EE9C2B"/></g>
+    <g transform="translate(232 70)" stroke="#5E6886" stroke-width="4" fill="none"><path d="M0 110 L18 0 L36 110"/><path d="M6 72 h24 M10 46 h16 M14 22 h8"/><circle cx="18" cy="-4" r="6" fill="#14AFAA" stroke="none"/></g>
+    <g transform="translate(36 186)"><path d="M0 60 L48 0 L96 60 Z" fill="#EE9C2B"/><path d="M48 0 L48 60 L38 60 Z" fill="#C25A14"/><path d="M40 60 L48 30 L56 60 Z" fill="#7A3A0A"/></g>
+    <g transform="translate(118 168)"><path d="M0 56 L42 0 L84 56 Z" fill="#2854AC"/><path d="M42 0 L42 56 L32 56 Z" fill="#22397A"/><path d="M34 56 L42 28 L50 56 Z" fill="#172C5B"/></g>
+    <g transform="translate(216 232)"><rect x="0" y="0" width="120" height="44" rx="12" fill="#4F8F3A" stroke="#172C5B" stroke-width="4"/><rect x="20" y="-24" width="70" height="30" rx="8" fill="#BFE3F4" stroke="#172C5B" stroke-width="4"/><rect x="96" y="12" width="20" height="10" rx="3" fill="#FFD36B"/><circle cx="28" cy="46" r="15" fill="#172C5B"/><circle cx="28" cy="46" r="6" fill="#D6DDEA"/><circle cx="96" cy="46" r="15" fill="#172C5B"/><circle cx="96" cy="46" r="6" fill="#D6DDEA"/></g>
+    <g transform="translate(40 268)"><rect width="34" height="26" rx="4" fill="#C9873F" stroke="#8A5A2B" stroke-width="3"/><rect x="40" y="6" width="28" height="20" rx="4" fill="#C9873F" stroke="#8A5A2B" stroke-width="3"/></g>`,
+  default: () => `${SKY}<rect y="236" width="400" height="104" fill="#E3E8F1"/><g transform="translate(110 120)"><rect width="180" height="120" rx="12" fill="#fff" stroke="#172C5B" stroke-width="4"/><path d="M-10 0 h200 l-20 -30 h-160 z" fill="#14AFAA"/><rect x="30" y="40" width="50" height="80" rx="6" fill="#22397A"/><rect x="100" y="40" width="54" height="40" rx="6" fill="#BFE3F4" stroke="#172C5B" stroke-width="3"/></g>`,
+};
+/* Play-screen strips: purpose-built wide scenes (400 x 84) so nothing is cut in half on a phone.
+   Everything sits inside x 20-380, y 4-80, so slicing on wider or narrower strips only trims sky and pavement. */
+const STRIP_SKY = '<defs><linearGradient id="skyStrip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE3F4"/><stop offset="1" stop-color="#EEF8FC"/></linearGradient></defs><rect width="400" height="84" fill="url(#skyStrip)"/><circle cx="366" cy="20" r="10" fill="#FFD36B"/><circle cx="366" cy="20" r="15" fill="#FFD36B" opacity=".25"/>';
+const MINI = (x, shirt, hair, ground = 62) => `<g transform="translate(${x} ${ground - 24}) scale(.5)">${PERSON(0, 0, shirt, hair)}</g>`;
+const STRIPS = {
+  restaurant: () => `${STRIP_SKY}
+    <g fill="#D6E4F4"><rect x="0" y="26" width="34" height="40" rx="3"/><rect x="292" y="20" width="40" height="46" rx="3"/><rect x="336" y="32" width="64" height="34" rx="3"/></g>
+    <rect y="62" width="400" height="22" fill="#E3E8F1"/><rect y="62" width="400" height="2" fill="#D6DDEA"/>
+    <circle cx="46" cy="44" r="13" fill="#69BD56"/><rect x="44" y="50" width="4" height="13" fill="#8A5A2B"/>
+    <g transform="translate(86 62)"><rect x="-8" y="-20" width="16" height="18" rx="2" fill="#22397A"/><g fill="#fff" opacity=".85"><rect x="-5" y="-16" width="10" height="2"/><rect x="-5" y="-12" width="8" height="2"/><rect x="-5" y="-8" width="9" height="2"/></g><rect x="-1.5" y="-2" width="3" height="4" fill="#8A5A2B"/></g>
+    <g transform="translate(118 3) scale(.37)">
+      <rect x="0" y="22" width="196" height="118" rx="22" fill="#fff" stroke="#172C5B" stroke-width="5"/>
+      <rect x="0" y="104" width="196" height="16" fill="#14AFAA"/>
+      <rect x="22" y="46" width="112" height="50" rx="8" fill="#22397A"/><rect x="22" y="86" width="112" height="10" fill="#8A5A2B"/>
+      <path d="M14 46 h128 l-8 -22 h-112 z" fill="#EE9C2B"/>
+      <g fill="#fff"><path d="M30 46 l4 -22 h14 l-4 22 z"/><path d="M62 46 l2 -22 h14 l-2 22 z"/><path d="M94 46 v-22 h14 v22 z"/><path d="M124 46 l-2 -22 h14 l2 22 z"/></g>
+      <rect x="146" y="46" width="38" height="40" rx="8" fill="#BFE3F4" stroke="#172C5B" stroke-width="4"/>
+      <circle cx="44" cy="142" r="17" fill="#172C5B"/><circle cx="44" cy="142" r="7" fill="#D6DDEA"/><circle cx="160" cy="142" r="17" fill="#172C5B"/><circle cx="160" cy="142" r="7" fill="#D6DDEA"/>
+    </g>
+    ${MINI(214, '#2854AC', '#5A3A22')}${MINI(236, '#EE9C2B', '#1F1A17')}${MINI(258, '#69BD56', '#8A5A2B')}`,
+  military: () => `${STRIP_SKY}
+    <path d="M0 52 Q100 34 200 48 T400 44 V84 H0 Z" fill="#8FD17A"/><path d="M0 64 Q120 54 260 62 T400 60 V84 H0 Z" fill="#69BD56"/>
+    <g transform="translate(60 30)"><path d="M0 32 L26 0 L52 32 Z" fill="#EE9C2B"/><path d="M26 0 L26 32 L20 32 Z" fill="#C25A14"/><path d="M21 32 L26 16 L31 32 Z" fill="#7A3A0A"/></g>
+    <g transform="translate(120 34)"><path d="M0 28 L22 0 L44 28 Z" fill="#2854AC"/><path d="M22 0 L22 28 L17 28 Z" fill="#22397A"/><path d="M18 28 L22 14 L26 28 Z" fill="#172C5B"/></g>
+    <g transform="translate(194 8)"><rect x="-1.5" y="0" width="3" height="56" fill="#5E6886"/><path d="M1.5 2 h28 v18 h-28 z" fill="#22397A"/><path d="M16 6 l2 4.5 5 .5 -4 3 1.5 5 -4.5 -3 -4.5 3 1.5 -5 -4 -3 5 -.5 z" fill="#EE9C2B"/></g>
+    <g transform="translate(236 46)"><rect x="0" y="0" width="64" height="22" rx="6" fill="#4F8F3A" stroke="#172C5B" stroke-width="2.5"/><rect x="10" y="-12" width="38" height="15" rx="4" fill="#BFE3F4" stroke="#172C5B" stroke-width="2.5"/><circle cx="15" cy="23" r="8" fill="#172C5B"/><circle cx="15" cy="23" r="3" fill="#D6DDEA"/><circle cx="51" cy="23" r="8" fill="#172C5B"/><circle cx="51" cy="23" r="3" fill="#D6DDEA"/></g>
+    <g transform="translate(318 58)"><rect width="18" height="14" rx="2" fill="#C9873F" stroke="#8A5A2B" stroke-width="2"/><rect x="22" y="3" width="15" height="11" rx="2" fill="#C9873F" stroke="#8A5A2B" stroke-width="2"/></g>`,
+  default: () => `${STRIP_SKY}<rect y="62" width="400" height="22" fill="#E3E8F1"/>
+    <g transform="translate(160 14)"><rect width="80" height="48" rx="6" fill="#fff" stroke="#172C5B" stroke-width="2.5"/><path d="M-5 0 h90 l-9 -12 h-72 z" fill="#14AFAA"/><rect x="12" y="16" width="22" height="32" rx="3" fill="#22397A"/><rect x="44" y="16" width="26" height="18" rx="3" fill="#BFE3F4" stroke="#172C5B" stroke-width="2"/></g>
+    ${MINI(266, '#2854AC', '#5A3A22')}${MINI(288, '#EE9C2B', '#1F1A17')}`,
+};
+function sceneSVG(strip) {
+  const full = `<svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${(SCENES[THEME] || SCENES.default)()}</svg>`;
+  if (!strip) return full;
+  // Phones show the wide strip; the two-column tablet layout has room for the full scene.
+  return `<svg class="strip-wide" viewBox="0 0 400 84" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${(STRIPS[THEME] || STRIPS.default)()}</svg>`
+    + full.replace('<svg ', '<svg class="strip-full" ');
+}
+
+/* ===================== Screens and the tab bar ===================== */
+const GAME_VIEWS = { hub: 'hub', play: 'play', pack: 'pack', kit: 'kit', venture: 'hub' };
+function show(view) {
+  document.querySelectorAll('main > section').forEach((s) => s.classList.add('hidden'));
+  $('v-' + view).classList.remove('hidden');
+  const inGame = view in GAME_VIEWS && !!S.game && !(view === 'venture' && S.ventureReason === 'first');
+  /* the tab bar steps aside while a question is up, so the pad and Check stay in reach */
+  const tabsShown = inGame && view !== 'play';
+  document.body.classList.toggle('in-game', tabsShown);
+  $('tabs').hidden = !tabsShown;
+  $('tabs').querySelectorAll('[data-tab]').forEach((b) => b.toggleAttribute('aria-current', false));
+  if (inGame) $('tabs').querySelector(`[data-tab="${GAME_VIEWS[view]}"]`)?.setAttribute('aria-current', 'page');
+  if (inGame) Sound.startMusic(); else if (view === 'auth' || view === 'who') Sound.stopMusic();
+  window.scrollTo(0, 0);
+}
+$('tabs').onclick = (e) => {
+  const b = e.target.closest('[data-tab]'); if (!b) return;
+  const t = b.dataset.tab;
+  if (t === 'hub') { openHub(); refreshGame().then(() => { if (!$('v-hub').classList.contains('hidden')) openHub(); }); }
+  else if (t === 'play') { if ($('v-play').classList.contains('hidden')) openPlay(); }
+  else if (t === 'pack') openPack();
+  else if (t === 'kit') openKit();
+};
+function miniRankHTML() {
+  const r = S.rank; if (!r) return '';
+  const pct = Math.round(((r.level - 1) * r.per_level + r.level_progress) / (10 * r.per_level) * 100);
+  return `<span>${esc(r.tier_name)} · Lv ${r.level}</span><span class="bar"><i style="width:${pct}%"></i></span>`;
+}
+document.addEventListener('click', (e) => {
+  const go = e.target.closest('[data-go]');
+  if (!go) return;
+  const v = go.dataset.go;
+  if (v === 'who') return openWho();
+  if (v === 'hub') { openHub(); return refreshGame().then(() => { if (!$('v-hub').classList.contains('hidden')) openHub(); }); }
+  if (v === 'play') return openPlay();
+  if (v === 'pack') return openPack();
+  if (v === 'kit') return openKit();
+  if (v === 'venture') return openVenture('');
+});
+
+/* ===================== Sign in ===================== */
+let signingUp = false;
+$('authSwitch').onclick = () => {
+  signingUp = !signingUp;
+  $('authTitle').textContent = signingUp ? 'Create a parent account' : 'Parent sign in';
+  $('authBtn').textContent = signingUp ? 'Create account' : 'Sign in';
+  $('authSwitch').textContent = signingUp ? 'I already have an account' : 'Create an account';
+  $('password').autocomplete = signingUp ? 'new-password' : 'current-password';
+  say('authMsg', '');
+};
+$('authForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const email = $('email').value.trim(), password = $('password').value;
+  $('authBtn').disabled = true; say('authMsg', signingUp ? 'Creating your account…' : 'Signing in…');
+  const { data, error } = signingUp ? await db.auth.signUp({ email, password }) : await db.auth.signInWithPassword({ email, password });
+  $('authBtn').disabled = false;
+  if (error) return say('authMsg', nice(error), 'bad');
+  if (signingUp && data.user && (data.user.identities || []).length === 0) {
+    $('authSwitch').click();
+    return say('authMsg', 'You already have an account with that email. Sign in instead.', 'bad');
+  }
+  if (signingUp && !data.session) return say('authMsg', 'Check your email and click the link, then come back and sign in.', 'good');
+  S.user = data.user; openWho();
+};
+$('signOut').onclick = async () => { await db.auth.signOut(); S.user = null; isAdmin = false; devInit(); show('auth'); };
+
+/* ===================== Theme ===================== */
+async function loadTheme() {
+  if (S.theme) return;
+  const [th, fl] = await Promise.all([
+    db.from('themes').select('*').eq('id', THEME).single(),
+    db.from('theme_flavours').select('*').eq('theme', THEME).order('sort'),
+  ]);
+  if (th.error) throw th.error;
+  S.theme = th.data; S.flavours = fl.data || [];
+  document.title = S.theme.name;
+}
+
+/* ===================== Who's playing ===================== */
+async function openWho() {
+  show('who'); devInit();
+  $('whoEmail').textContent = S.user?.email || '';
+  $('pinPanel').hidden = true;
+  try { await loadTheme(); } catch (e) { $('players').innerHTML = `<p class="msg bad">This game isn't set up yet. ${esc(nice(e))}</p>`; return; }
+  const { data, error } = await db.from('children').select('id, nickname, child_games(id, theme, subject, custom_names, flavour)').order('created_at');
+  if (error) { $('players').innerHTML = `<p class="msg bad">${esc(nice(error))}</p>`; return; }
+  S.children = data || [];
+  $('addPlayer').open = S.children.length === 0;
+  $('players').innerHTML = S.children.length ? S.children.map((c) => {
+    const g = (c.child_games || []).find((x) => x.theme === THEME && x.subject === SUBJECT);
+    const fname = g && S.flavours.find((f) => f.id === g.flavour)?.name;
+    return `<button class="player-btn" data-child="${c.id}"><b>${esc(c.nickname)}</b><span>${g ? esc(g.custom_names?.[S.theme.custom_name_fields?.[0]?.key] || fname || 'Business ready') : 'New business'}</span></button>`;
+  }).join('') : '<p>Add your first player below.</p>';
+}
+$('players').onclick = (e) => {
+  const b = e.target.closest('[data-child]'); if (!b) return;
+  S.child = S.children.find((c) => c.id === b.dataset.child);
+  $('pinTitle').textContent = `${S.child.nickname}, enter your PIN`;
+  $('pinIn').value = ''; say('pinMsg', '');
+  $('pinPanel').hidden = false; $('pinIn').focus();
+};
+$('pinCancel').onclick = () => { $('pinPanel').hidden = true; };
+$('pinForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const { data, error } = await db.rpc('check_child_pin', { p_child: S.child.id, p_pin: $('pinIn').value });
+  if (error) return say('pinMsg', nice(error), 'bad');
+  if (!data) return say('pinMsg', "That PIN isn't right. Try again.", 'bad');
+  enterChild();
+};
+async function enterChild() {
+  const g = (S.child.child_games || []).find((x) => x.theme === THEME && x.subject === SUBJECT);
+  if (!g) return openSetup();
+  await loadGame(g.id);
+  if (!S.game.flavour && S.flavours.length) return openVenture('first');
+  openHub();
+}
+$('addForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const nickname = $('addName').value.trim(), pin = $('addPin').value.trim();
+  if (pin && !/^\d{4}$/.test(pin)) return say('addMsg', 'The PIN needs to be 4 numbers, or leave it empty.', 'bad');
+  const { data, error } = await db.from('children').insert({ nickname }).select('id').single();
+  if (error) return say('addMsg', nice(error), 'bad');
+  if (pin) { const r = await db.rpc('set_child_pin', { p_child: data.id, p_pin: pin }); if (r.error) return say('addMsg', nice(r.error), 'bad'); }
+  $('addName').value = ''; $('addPin').value = '';
+  await openWho(); say('addMsg', `${nickname} added. Tap their name to play.`, 'good');
+};
+
+/* ===================== New business ===================== */
+function openSetup() {
+  const fields = S.theme.custom_name_fields || [];
+  $('setupTitle').textContent = SKIN_COPY[THEME]?.setup || `Start your ${String(tierName(1)).toLowerCase()}`;
+  $('setupHelp').textContent = S.flavours.length ? "Pick your names. You'll choose what to sell next." : 'Pick your names.';
+  $('nameFields').innerHTML = fields.map((f, i) => `<label for="nf-${esc(f.key)}">${esc(f.label)}</label>
+    <input id="nf-${esc(f.key)}" data-key="${esc(f.key)}" type="text" maxlength="24" required value="${i === fields.length - 1 && fields.length > 1 ? esc(S.child.nickname) : ''}">`).join('');
+  say('setupMsg', ''); show('setup');
+}
+$('setupForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const custom_names = {};
+  $('nameFields').querySelectorAll('input[data-key]').forEach((i) => { custom_names[i.dataset.key] = i.value.trim(); });
+  const { data, error } = await db.from('child_games')
+    .insert({ child_id: S.child.id, subject: SUBJECT, theme: THEME, custom_names }).select('id').single();
+  if (error) return say('setupMsg', nice(error), 'bad');
+  await loadGame(data.id);
+  S.flavours.length ? openVenture('first') : openHub();
+};
+
+/* ===================== Loading a game ===================== */
+async function loadGame(id) {
+  await loadTheme();
+  const wordingFrom = S.theme.wording_theme || THEME;
+  const [g, w, cols, own, crate, rank, perks] = await Promise.all([
+    db.from('child_games').select('*').eq('id', id).single(),
+    db.from('theme_wording').select('template_id, theme, wording').in('theme', [wordingFrom, 'generic']),
+    db.from('collectibles').select('id, name, rarity, kind, slot, perks, unlock_tier, story').eq('theme', THEME).order('id'),
+    db.from('child_collection').select('collectible_id, quantity, equipped_slot').eq('game_id', id),
+    db.from('crates').select('*').eq('theme', THEME).eq('active', true).limit(1),
+    db.rpc('rank_info', { p_game: id }),
+    db.rpc('game_perks', { p_game: id }),
+  ]);
+  for (const r of [g, w, cols, own, crate, rank, perks]) if (r.error) throw r.error;
+  S.game = g.data; S.rank = rank.data; S.perks = perks.data; S.crate = (crate.data || [])[0] || null;
+  S.wording = {}; (w.data || []).forEach((x) => { S.wording[x.template_id + '|' + (x.theme === 'generic' ? 'generic' : 'theme')] = x.wording; });
+  S.collectibles = cols.data || [];
+  S.owned = new Map((own.data || []).map((o) => [o.collectible_id, o]));
+}
+async function refreshGame() {
+  if (!S.game) return;
+  const [own, perks, game, rank] = await Promise.all([
+    db.from('child_collection').select('collectible_id, quantity, equipped_slot').eq('game_id', S.game.id),
+    db.rpc('game_perks', { p_game: S.game.id }),
+    db.from('child_games').select('*').eq('id', S.game.id).single(),
+    db.rpc('rank_info', { p_game: S.game.id }),
+  ]);
+  if (own.data) S.owned = new Map(own.data.map((o) => [o.collectible_id, o]));
+  if (perks.data) S.perks = perks.data;
+  if (game.data) S.game = game.data;
+  if (rank.data) S.rank = rank.data;
+}
+
+/* ===================== Words ===================== */
+/* Theme defaults, then the kid's venture, then the kid's own names. Later ones win. */
+function words() {
+  // Blank names don't override the theme's defaults (so an unnamed restaurant reads "your restaurant").
+  const own = Object.fromEntries(Object.entries(names()).filter(([, v]) => typeof v === 'string' && v.trim() !== ''));
+  return { ...(S.theme?.default_words || {}), ...(flavour()?.words || {}), ...own };
+}
+function fill(text, vars) {
+  const w = words();
+  return text.replace(/(£|€)?\{(\w+)\}/g, (m, cur, k) => {
+    let v = vars && k in vars ? vars[k] : w[k];
+    if (v === undefined || v === '') return m;
+    if (Array.isArray(v)) v = v.join(', ');
+    else if (typeof v === 'number') v = cur && !Number.isInteger(v) ? v.toFixed(2) : v.toLocaleString('en-GB', { maximumFractionDigits: 6 });
+    return (cur || '') + v;
+  }).replace(/s's\b/g, "s'").replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+}
+
+/* ===================== Sound ===================== */
+/* Background music (one looping file per skin) and tiny synthesised effects (no extra downloads).
+   Both remember the kid's choice on this device; browsers only allow sound after a tap, so music starts on the first one. */
+const Sound = (() => {
+  const quiet = /jsdom/i.test(navigator.userAgent);
+  const MUSIC = { restaurant: '../audio/tycoon-music.mp3', default: '../audio/tycoon-music.mp3' };
+  const read = (k) => { try { return localStorage.getItem('lw.' + k) !== '0'; } catch { return true; } };
+  const write = (k, v) => { try { localStorage.setItem('lw.' + k, v ? '1' : '0'); } catch { /* private mode */ } };
+  let music = read('music'), fx = read('fx'), track = null, ctx = null, wanted = false;
+  function startMusic() {
+    wanted = true;
+    if (!music || quiet || document.hidden) return;
+    if (!track) { track = new Audio(MUSIC[THEME] || MUSIC.default); track.loop = true; track.volume = 0.22; track.preload = 'auto'; }
+    track.play()?.catch?.(() => {});
+  }
+  function stopMusic() { wanted = false; track?.pause(); }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) track?.pause(); else if (wanted && music) startMusic(); });
+  // notes: [frequency Hz, start s, length s, wave, volume]
+  function play(notes) {
+    if (!fx || quiet) return;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      const t0 = ctx.currentTime + 0.01;
+      for (const [f, at, len, type = 'triangle', vol = 0.18] of notes) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, t0 + at);
+        g.gain.setValueAtTime(0.0001, t0 + at);
+        g.gain.exponentialRampToValueAtTime(vol, t0 + at + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + len);
+        o.connect(g).connect(ctx.destination); o.start(t0 + at); o.stop(t0 + at + len + 0.02);
+      }
+    } catch { /* no audio on this device */ }
+  }
+  const FX = {
+    right: [[784, 0, 0.12], [1047, 0.09, 0.22]],
+    coin: [[988, 0, 0.08, 'square', 0.07], [1319, 0.07, 0.2, 'square', 0.07]],
+    wrong: [[330, 0, 0.16, 'sine', 0.16], [247, 0.13, 0.28, 'sine', 0.16]],
+    level: [[523, 0, 0.12], [659, 0.1, 0.12], [784, 0.2, 0.12], [1047, 0.3, 0.35]],
+    shake: [[110, 0, 0.12, 'sawtooth', 0.05], [123, 0.14, 0.12, 'sawtooth', 0.05], [110, 0.28, 0.12, 'sawtooth', 0.05], [131, 0.42, 0.14, 'sawtooth', 0.05]],
+    reveal: [[659, 0, 0.1], [880, 0.08, 0.1], [1175, 0.16, 0.25]],
+    legendary: [[523, 0, 0.1], [784, 0.08, 0.1], [1047, 0.16, 0.1], [1319, 0.24, 0.1], [1568, 0.32, 0.4]],
+    equip: [[440, 0, 0.06, 'square', 0.06], [660, 0.05, 0.1, 'square', 0.06]],
+  };
+  function paint() {
+    document.querySelectorAll('#musicToggle, #playMute').forEach((b) => b.setAttribute('aria-pressed', String(music)));
+    $('fxToggle')?.setAttribute('aria-pressed', String(fx));
+  }
+  return {
+    fx: (name) => play(FX[name] || []),
+    startMusic, stopMusic, paint,
+    toggleMusic() { music = !music; write('music', music); paint(); if (music) startMusic(); else track?.pause(); },
+    toggleFx() { fx = !fx; write('fx', fx); paint(); if (fx) play(FX.equip); },
+  };
+})();
+$('musicToggle').onclick = () => Sound.toggleMusic();
+$('playMute').onclick = () => Sound.toggleMusic();
+$('fxToggle').onclick = () => Sound.toggleFx();
+Sound.paint();
+
+/* ===================== Hub ===================== */
+function unlockedFlavours() { return S.flavours.filter((f) => f.unlock_tier <= (S.rank?.tier || 1)); }
+function boardHTML() {
+  const r = S.rank || { tier: 1, level: 1, tier_name: '', level_progress: 0, per_level: 5 };
+  const pips = Array.from({ length: 10 }, (_, i) => {
+    const n = i + 1;
+    if (n < r.level) return '<div class="pip on"></div>';
+    if (n === r.level) return `<div class="pip now" style="--p:${Math.round((r.level_progress / r.per_level) * 100)}%"></div>`;
+    return '<div class="pip"></div>';
+  }).join('');
+  const f = flavour(), nm = names();
+  const fields = S.theme.custom_name_fields || [];
+  const boss = fields[1] ? `${esc(fields[1].label.replace(/ name$/i, ''))}: <b>${esc(nm[fields[1].key] || S.child.nickname)}</b>` : '';
+  const ladder = (S.theme.tier_names || []).map((t, i) => `<span class="${i + 1 < r.tier ? 'done' : i + 1 === r.tier ? 'now' : ''}">${esc(t)}</span>`).join('');
+  const equipped = [...S.owned.values()].filter((o) => o.equipped_slot)
+    .map((o) => S.collectibles.find((c) => c.id === o.collectible_id)).filter(Boolean);
+  return `<div class="scene">${sceneSVG()}
+      <div class="hud"><span class="pill"><i class="coin" aria-hidden="true"></i>${money(S.game.credits)}</span><span class="pill light">${esc(r.tier_name)} · Lv ${r.level}</span></div>
+      ${equipped.length ? `<div class="equipped" aria-label="Kit in use">${equipped.map((c) => `<span title="${esc(c.name)}">${SLOT_ICON[c.slot] || '★'}</span>`).join('')}</div>` : ''}
+      <div class="sign"><div class="biz">${esc(nm[fields[0]?.key] || f?.name || S.theme.name)}</div>
+      <div class="sub">${f ? `<b>${esc(f.name)}</b>` : ''}${f && boss ? ' · ' : ''}${boss}</div></div></div>
+    <div class="rank"><div class="rank-top"><span>${esc(r.tier_name)}, level ${r.level} of 10</span>
+      <em>${r.next_tier_name ? `Next: ${esc(r.next_tier_name)}` : 'Top of the ladder'}</em></div>
+      <div class="pips" aria-label="Level ${r.level} of 10, ${r.level_progress} of ${r.per_level} right answers towards the next level">${pips}</div>
+      <div class="ladder" aria-label="Business ladder">${ladder}</div></div>`;
+}
+function openHub() {
+  if (!S.game) return openWho();
+  show('hub');
+  $('hubWho').textContent = `Playing as ${S.child.nickname}`;
+  $('board').innerHTML = boardHTML();
+  $('crateName').textContent = S.crate?.name || 'Supply crate';
+  $('packCost').textContent = S.crate ? `${money(S.crate.price)} for ${S.crate.items_per_crate} items` : 'Coming soon';
+  $('kitName').textContent = 'Your kit';
+  $('kitCount').textContent = `${S.owned.size} of ${S.collectibles.length} collected. Gear bonus +${S.perks?.coin_bonus ?? 0} per answer`;
+  const un = unlockedFlavours();
+  $('ventureBtn').hidden = !S.flavours.length;
+  $('ventureNote').textContent = `${un.length} of ${S.flavours.length} unlocked`;
+  const equipped = [...S.owned.values()].filter((o) => o.equipped_slot)
+    .map((o) => S.collectibles.find((c) => c.id === o.collectible_id)).filter(Boolean);
+  const next = S.flavours.filter((f) => f.unlock_tier === (S.rank?.tier || 1) + 1);
+  $('hubSide').innerHTML = `<h3 style="margin-bottom:8px">In use</h3>
+    ${equipped.length ? `<p>${equipped.map((c) => `${SLOT_ICON[c.slot] || '★'} ${esc(c.name)}`).join('<br>')}</p>` : `<p style="color:var(--cream-dim)">Nothing yet. Open a ${esc(S.crate?.name || 'crate')} to get kit.</p>`}
+    ${next.length ? `<h3 style="margin:16px 0 8px">Unlocks at ${esc(tierName((S.rank?.tier || 1) + 1))}</h3><p style="color:var(--cream-dim)">${next.map((f) => esc(f.name)).join(', ')}</p>` : ''}`;
+}
+
+/* ===================== Ventures ===================== */
+/* reason: 'first' (new business), 'tierup' (just grew), '' (changing for fun) */
+function openVenture(reason) {
+  S.ventureReason = reason;
+  const tier = S.rank?.tier || 1;
+  $('ventureTitle').textContent = reason === 'tierup' ? `You're now a ${tierName(tier)}!` : reason === 'first' ? 'What will you sell?' : 'Change venture';
+  $('ventureHelp').textContent = reason === 'tierup' ? 'New ventures unlocked. Pick your next one, or stick with what you know.'
+    : reason === 'first' ? 'Pick your first venture. Grow your business to unlock bigger ones.' : 'Switch to anything you have unlocked.';
+  $('ventureBack').hidden = reason === 'first';
+  const tiers = [...new Set(S.flavours.map((f) => f.unlock_tier))].sort((a, b) => a - b);
+  $('ventures').innerHTML = tiers.map((t) => `<div class="v-tier"><h3>${esc(tierName(t))}${t > tier ? '<em>Locked</em>' : ''}</h3><div class="v-opts">
+    ${S.flavours.filter((f) => f.unlock_tier === t).map((f) => {
+      const cur = f.id === S.game.flavour, locked = t > tier, isNew = reason === 'tierup' && t === tier;
+      const w = { ...(S.theme.default_words || {}), ...(f.words || {}) };
+      return `<button class="venture${cur ? ' current' : ''}${isNew ? ' new' : ''}" data-f="${esc(f.id)}" ${locked ? 'disabled' : ''}>
+        <b>${esc(f.name)}</b><span>${locked ? `Unlocks at ${esc(tierName(t))}` : cur ? 'Your current venture' : `Sell ${esc(w.items || '')}${w.sides ? ` and ${esc(w.sides)}` : ''}`}</span></button>`;
+    }).join('')}</div></div>`).join('');
+  say('ventureMsg', ''); show('venture');
+}
+$('ventures').onclick = async (e) => {
+  const b = e.target.closest('[data-f]'); if (!b || b.disabled) return;
+  if (b.dataset.f === S.game.flavour) return openHub();
+  const { data, error } = await db.rpc('choose_venture', { p_game: S.game.id, p_flavour: b.dataset.f });
+  if (error) return say('ventureMsg', nice(error), 'bad');
+  S.game.flavour = data.flavour;
+  openHub();
+};
+
+/* ===================== Worked explanations (same as football) ===================== */
+const WORK_FN = {
+  sum: (l) => l.reduce((a, b) => a + b, 0),
+  min: (...a) => Math.min(...a.flat()), max: (...a) => Math.max(...a.flat()),
+  abs: Math.abs, floor: Math.floor, sqrt: Math.sqrt,
+  round: (x, dp = 0) => Math.round((x + Number.EPSILON) * 10 ** dp) / 10 ** dp,
+  fixed: (x, dp) => (Math.round((x + Number.EPSILON) * 10 ** dp) / 10 ** dp).toFixed(dp),
+  roundto: (x, to) => Math.round(x / to) * to,
+  hcf: (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; },
+  lcm: (a, b) => a / WORK_FN.hcf(a, b) * b,
+  frac: (n, d) => { const h = WORK_FN.hcf(n, d); return d / h === 1 ? String(n / h) : `${n / h}/${d / h}`; },
+  sorted: (l) => [...l].sort((a, b) => a - b).join(', '),
+  median: (l) => { const s = [...l].sort((a, b) => a - b), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; },
+  mode: (l) => { const c = {}; l.forEach((x) => { c[x] = (c[x] || 0) + 1; }); return Number(Object.keys(c).sort((a, b) => c[b] - c[a])[0]); },
+  times: (l, x) => l.filter((y) => y === x).length,
+  multiples: (n, upto) => { const o = []; for (let k = n; k <= upto; k += n) o.push(k); return o.join(', '); },
+  hm: (h) => { const t = Math.round(h * 60), hh = Math.floor(t / 60), mm = t % 60;
+    return [hh ? `${hh} hour${hh > 1 ? 's' : ''}` : '', mm ? `${mm} minutes` : ''].filter(Boolean).join(' ') || '0 minutes'; },
+  addmins: (start, m) => { const [h, mi] = String(start).split(':').map(Number), t = (h * 60 + mi + m) % 1440;
+    return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; },
+  nth: (d, c) => `${d}n${c > 0 ? ' + ' + c : c < 0 ? ' − ' + -c : ''}`,
+  better: (a, b) => (a <= b ? 'Deal 1' : 'Deal 2'),
+  digit: (x, place) => Math.floor(Math.round(Math.abs(x) * 10 ** place * 1e6) / 1e6) % 10,
+  updown: (d) => (d >= 5 ? '5 or more, so round up' : 'less than 5, so it stays the same'),
+};
+function workEval(src, vars) {
+  const toks = src.match(/\d+(?:\.\d+)?|[A-Za-z_]\w*|[-+*/^(),]/g) || [];
+  if (toks.join('') !== src.replace(/\s+/g, '')) throw new Error('bad expression: ' + src);
+  let i = 0;
+  const peek = () => toks[i], take = (t) => { if (toks[i] !== t) throw new Error('expected ' + t); i++; };
+  const expr = () => { let v = term(); while (peek() === '+' || peek() === '-') { const op = toks[i++], r = term(); v = op === '+' ? v + r : v - r; } return v; };
+  const term = () => { let v = power(); while (peek() === '*' || peek() === '/') { const op = toks[i++], r = power(); v = op === '*' ? v * r : v / r; } return v; };
+  const power = () => { const b = unary(); if (peek() === '^') { i++; return b ** power(); } return b; };
+  const unary = () => (peek() === '-' ? (i++, -unary()) : atom());
+  const atom = () => {
+    const t = toks[i++];
+    if (t === undefined) throw new Error('unexpected end');
+    if (t === '(') { const v = expr(); take(')'); return v; }
+    if (/^\d/.test(t)) return Number(t);
+    if (peek() === '(') {
+      const f = WORK_FN[t]; if (!f) throw new Error('unknown function ' + t);
+      i++; const args = [];
+      if (peek() !== ')') { args.push(expr()); while (peek() === ',') { i++; args.push(expr()); } }
+      take(')'); return f(...args);
+    }
+    if (t === 'pi') return Math.PI;
+    if (!(t in vars)) throw new Error('unknown value ' + t);
+    return vars[t];
+  };
+  const v = expr();
+  if (i !== toks.length) throw new Error('left over in ' + src);
+  return v;
+}
+function workLine(line, vars) {
+  return line.replace(/(£|€)?\{([^{}]+)\}/g, (m, cur, src) => {
+    let v = workEval(src.trim(), vars);
+    if (typeof v === 'number') {
+      if (!Number.isFinite(v)) throw new Error('not a number in ' + src);
+      v = Math.round(v * 1e9) / 1e9;
+      v = cur && !Number.isInteger(v) ? v.toFixed(2) : v.toLocaleString('en-GB', { maximumFractionDigits: 3 });
+    } else if (Array.isArray(v)) v = v.join(', ');
+    return (cur || '') + v;
+  });
+}
+function workedLines(explain, vars) {
+  if (!Array.isArray(explain) || !explain.length) return null;
+  try { return explain.map((l) => workLine(l, vars || {})); } catch (e) { console.warn('Working skipped:', e.message); return null; }
+}
+
+/* ===================== Questions ===================== */
+const EXAMPLES = {
+  'RAT-01': 'Write it like 3:4', 'RAT-02': 'Give both amounts, like 240 and 360', 'FRA-02': 'Write it like 3/8',
+  'RAT-04': 'A fraction like 3/8 or a decimal', 'FRA-03': 'A fraction like 7/12', 'PRO-01': 'A fraction like 3/8 or a decimal',
+  'PRO-04': 'A fraction like 3/8 or a decimal', 'UNI-02': 'Use the 24-hour clock, like 14:15', 'CMP-03': 'Hours and minutes, like 1h 30',
+  'ALG-04': 'Like 3n + 2', 'AVG-03': 'Give the mode, then the range, like 23, 41', 'DEC-03': 'Deal 1 or Deal 2',
+};
+function questionText() {
+  const q = S.q, exam = $('examMode').checked;
+  const text = (!exam && S.wording[q.template_id + '|theme']) || S.wording[q.template_id + '|generic'] || q.spec_point;
+  return fill(text, q.vars);
+}
+async function openPlay() { show('play'); await nextQ(); }
+async function nextQ(retryTemplate) {
+  $('qResult').innerHTML = ''; $('answerIn').value = ''; $('answerIn').disabled = false; $('answerBtn').disabled = false; $('pad').hidden = false;
+  $('qText').textContent = 'Loading…';
+  $('playCash').textContent = money(S.game.credits);
+  $('playRank').innerHTML = miniRankHTML();
+  if (!$('playStrip').firstChild) $('playStrip').innerHTML = sceneSVG(true);
+  padState();
+  const { data, error } = await db.rpc('next_question', { p_game: S.game.id, p_template: retryTemplate || null });
+  if (error) { $('qText').textContent = nice(error); return; }
+  S.q = data; S.q.servedAt = Date.now();
+  renderQ();
+  if (!TOUCH || keyboardMode) $('answerIn').focus();
+}
+
+/* ===================== Number pad ===================== */
+/* Touch screens get the pad instead of the phone keyboard; "Need letters?" brings the keyboard back for answers like "Deal 1". */
+const TOUCH = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+let keyboardMode = false;
+function padState() {
+  $('answerIn').inputMode = TOUCH && !keyboardMode ? 'none' : 'text';
+  $('kbdBtn').textContent = keyboardMode ? 'Back to the number pad' : 'Need letters? Use the keyboard';
+}
+$('pad').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b || $('answerIn').disabled) return;
+  if (b.id === 'kbdBtn') { keyboardMode = !keyboardMode; padState(); $('answerIn').blur(); $('answerIn').focus(); return; }
+  const k = b.dataset.k, inp = $('answerIn');
+  if (k === 'del') inp.value = inp.value.slice(0, -1).replace(/,\s$/, ',');
+  else if (k === ', ') inp.value = inp.value.replace(/\s+$/, '') + ', ';
+  else inp.value += k;
+};
+function rewardPop(text) {
+  $('playStrip').querySelector('.reward')?.remove();
+  $('playStrip').insertAdjacentHTML('beforeend', `<div class="reward">${esc(text)}</div>`);
+}
+function renderQ() {
+  const q = S.q;
+  const calc = q.calculator === 'calculator' ? '<span class="tag calc">Calculator</span>' : q.calculator === 'non-calculator' ? '<span class="tag nocalc">No calculator</span>' : '';
+  $('qTags').innerHTML = `${calc}<span class="tag">Difficulty ${q.difficulty}</span>`;
+  $('qText').textContent = questionText();
+  $('qExample').textContent = EXAMPLES[q.template_id] || '';
+  $('qTip').hidden = true; $('qTip').textContent = q.tip || '';
+  $('tipBtn').hidden = !q.tip;
+  devButtons();
+}
+$('tipBtn').onclick = () => { $('qTip').hidden = false; $('tipBtn').hidden = true; };
+function workingHTML(data) {
+  const lines = workedLines(data.explain, data.vars || S.q.vars) || data.steps || [];
+  return `<ol class="working">${lines.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>`;
+}
+$('examMode').onchange = () => { if (S.q) $('qText').textContent = questionText(); };
+$('answerForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const given = $('answerIn').value.trim();
+  if (!given || !S.q || $('answerBtn').disabled) return;
+  $('answerBtn').disabled = true; $('answerIn').disabled = true;
+  const { data, error } = await db.rpc('submit_answer', {
+    p_attempt: S.q.attempt_id, p_given: given, p_shown_text: $('qText').textContent, p_exam_mode: $('examMode').checked });
+  if (error) { $('qResult').innerHTML = `<p class="msg bad">${esc(nice(error))}</p>`; $('answerBtn').disabled = false; $('answerIn').disabled = false; return; }
+  S.game.credits = data.credits; S.rank = data.rank;
+  $('playCash').textContent = money(S.game.credits);
+  $('playRank').innerHTML = miniRankHTML();
+  $('pad').hidden = true;
+  if (data.correct && !data.too_fast && data.credits_awarded) rewardPop(`+${money(data.credits_awarded + (data.gear_bonus || 0))}`);
+  Sound.fx(data.tier_up || data.levelled_up ? 'level' : data.correct ? (data.credits_awarded ? 'coin' : 'right') : 'wrong');
+  const topic = `<p style="color:var(--cream-dim)">Topic: ${esc(S.q.topic)}, ${esc(String(S.q.spec_point || '').toLowerCase())}</p>`;
+  const newVentures = data.tier_up && S.flavours.some((f) => f.unlock_tier === data.rank.tier);
+  let html;
+  if (data.correct) {
+    const extras = [];
+    if (data.gear_bonus) extras.push(`+${money(data.gear_bonus)} from your gear`);
+    if ($('examMode').checked && data.credits_awarded) extras.push(`+${money(2)} for exam wording`);
+    html = `<div class="result right"><h3>${data.too_fast ? 'Right, but too quick to count' : `Right! +${money(data.credits_awarded)}`}</h3>
+      ${data.too_fast ? '<p>Take a couple of seconds to read each question. Answers under 2 seconds earn nothing.</p>' : extras.length ? `<p>${extras.join(', ')}</p>` : ''}
+      ${topic}
+      ${data.tier_up ? `<div class="levelup">${esc(COPY.grown)} ${esc(data.rank.tier_name)}!${newVentures ? ' New ventures unlocked.' : ''}</div>`
+        : data.levelled_up ? `<div class="levelup">Level ${data.rank.level} reached</div>` : ''}
+      <details class="see-working"><summary>See the working</summary>${workingHTML(data)}</details>
+      <div class="row" style="margin-top:16px">${newVentures ? '<button class="btn" id="ventureNow">Choose your next venture</button>' : ''}
+        <button class="btn${newVentures ? ' ghost small' : ''}" id="nextBtn">Next question</button><button class="btn ghost small" id="retryBtn">Try a similar one</button></div></div>`;
+  } else {
+    html = `<div class="result wrong"><h3>Not this time</h3>
+      <p>The answer was <b>${esc(String(data.answer ?? '').replace(/^(\d+):(\d+)$/, S.q.template_id === 'RAT-02' ? '$1 and $2' : '$1:$2'))}</b>.</p>
+      <h3 style="font-size:22px;margin-top:14px">How to do it</h3>${workingHTML(data)}${topic}
+      <p>This one will come back soon so you can nail it.</p>
+      <div class="row"><button class="btn" id="retryBtn">Try a similar one</button><button class="btn ghost small" id="nextBtn">Next question</button></div></div>`;
+  }
+  $('qResult').innerHTML = html;
+  $('nextBtn').onclick = () => nextQ();
+  if ($('retryBtn')) $('retryBtn').onclick = () => nextQ(S.q.template_id);
+  if ($('ventureNow')) $('ventureNow').onclick = () => openVenture('tierup');
+  ($('ventureNow') || (data.correct ? $('nextBtn') : $('retryBtn'))).focus();
+  $('qResult').scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+};
+
+/* ===================== Crate ===================== */
+function cardHTML(c, opts = {}) {
+  const tag = opts.button ? 'button' : 'div';
+  const qty = opts.qty > 1 ? ` (×${opts.qty})` : '';
+  const perk = c.kind === 'gear' ? `+${money(c.perks?.coin_bonus || 0)} per answer` : 'Looks good';
+  const attrs = opts.button ? ` data-item="${esc(c.id)}" aria-label="${esc(c.name)}, ${RAR[c.rarity]} ${esc(slotLabel(c.slot))}${opts.equipped ? ', in use' : ''}"` : '';
+  return `<${tag} class="card${opts.locked ? ' locked' : ''}${opts.equipped ? ' equipped' : ''}" data-r="${c.rarity}"${attrs}>
+    <div class="icon" aria-hidden="true">${SLOT_ICON[c.slot] || '★'}</div>
+    <div><div class="name">${esc(c.name)}</div><div class="meta">${RAR[c.rarity]} ${esc(slotLabel(c.slot).toLowerCase())}${qty}<br>${perk}</div></div>
+  </${tag}>`;
+}
+/* Guarantees: an epic or better within 10 crates, a legendary within 40 (counted on the server). */
+function pityHTML() {
+  const e = Math.max(1, 10 - (S.game.crates_since_epic || 0)), l = Math.max(1, 40 - (S.game.crates_since_legendary || 0));
+  return `Epic or better guaranteed within <b>${e}</b> crate${e === 1 ? '' : 's'} · Legendary within <b class="leg">${l}</b>`;
+}
+/* Epics and legendaries get their own moment. */
+function bigReveal(c) {
+  const leg = c.rarity === 'legendary';
+  const venture = (S.theme.tier_names || [])[(c.unlock_tier || 1) - 1] || '';
+  const share = `I just found the ${RAR[c.rarity].toLowerCase()} ${c.name} in my ${venture ? venture.toLowerCase() + ' ' : ''}game on LevelWise!`;
+  const el = document.createElement('div');
+  el.className = 'big-reveal'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', `${RAR[c.rarity]}: ${c.name}`);
+  el.style.setProperty('--gc', leg ? '#EE9C2B' : '#8A4FD8');
+  el.innerHTML = `<div class="glow"></div><div class="inner">
+    <div class="kicker">${leg ? 'LEGENDARY!' : 'EPIC!'}</div>
+    ${cardHTML(c)}
+    ${c.story ? `<p class="story">${esc(c.story)}</p>` : ''}
+    <div class="row"><button class="btn" data-share>Show someone!</button><button class="btn ghost small" data-done>Collect</button></div>
+    <p class="story" data-hint hidden style="font-size:14px">Take a screenshot to show it off.</p></div>`;
+  document.body.appendChild(el);
+  el.querySelector('[data-done]').focus();
+  el.onclick = async (e) => {
+    if (e.target.closest('[data-done]')) { el.remove(); return; }
+    if (e.target.closest('[data-share]')) {
+      try { if (navigator.share) { await navigator.share({ text: share }); return; } } catch { /* cancelled */ }
+      el.querySelector('[data-hint]').hidden = false;
+    }
+  };
+}
+function openPack() {
+  show('pack');
+  const c = S.crate;
+  $('packCash').textContent = money(S.game.credits);
+  if (!c) { $('packTitle').textContent = 'Crates coming soon'; $('odds').innerHTML = ''; $('packStage').innerHTML = ''; $('packButtons').innerHTML = ''; say('packMsg', ''); return; }
+  $('packTitle').textContent = c.name;
+  const total = Object.values(c.odds).reduce((a, b) => a + b, 0);
+  $('odds').innerHTML = RORDER.filter((r) => c.odds[r]).map((r) => `<span><b>${RAR[r]}</b> ${Math.round((c.odds[r] / total) * 1000) / 10}%</span>`).join('')
+    + `<div class="pity" style="flex-basis:100%">${pityHTML()}</div>`;
+  $('packStage').innerHTML = `<div class="pack" id="pack"><span>${esc(c.name.toUpperCase())}</span></div>`;
+  $('packButtons').innerHTML = `<button class="btn" id="openBtn">Open for ${money(c.price)}</button>`;
+  say('packMsg', S.game.credits < c.price ? `You need ${money(c.price - S.game.credits)} more. Answer some questions to earn it.` : '');
+  $('openBtn').disabled = S.game.credits < c.price;
+  $('openBtn').onclick = doOpen;
+}
+async function doOpen() {
+  $('openBtn').disabled = true;
+  $('pack').classList.add('shake'); Sound.fx('shake');
+  const [res] = await Promise.all([db.rpc('open_crate', { p_game: S.game.id, p_crate: S.crate.id }), new Promise((r) => setTimeout(r, 650))]);
+  if (res.error) { say('packMsg', nice(res.error), 'bad'); $('openBtn').disabled = false; return; }
+  S.game.credits = res.data.credits;
+  $('packCash').textContent = money(S.game.credits);
+  const items = res.data.items.map((it) => S.collectibles.find((c) => c.id === it.id) || it);
+  const isNew = items.map((it) => !S.owned.has(it.id));
+  $('packStage').innerHTML = `<div class="reveal">${items.map((it) => cardHTML(it)).join('')}</div>`;
+  const best = items.reduce((a, b) => (RORDER.indexOf(b.rarity) > RORDER.indexOf(a.rarity) ? b : a));
+  Sound.fx(best.rarity === 'legendary' || best.rarity === 'epic' ? 'legendary' : 'reveal');
+  say('packMsg', `${isNew.filter(Boolean).length} new for your collection. Best: ${best.name} (${RAR[best.rarity]}).`, 'good');
+  await refreshGame();
+  const fitted = await autoEquip(items);
+  if (S.game) { S.game.crates_since_epic = 10 - (res.data.epic_in ?? 10); S.game.crates_since_legendary = 40 - (res.data.legendary_in ?? 40); }
+  const pity = $('odds').querySelector('.pity'); if (pity) pity.innerHTML = pityHTML();
+  if (best.rarity === 'legendary' || best.rarity === 'epic') setTimeout(() => bigReveal(best), 900);
+  if (fitted.length) say('packMsg', `${isNew.filter(Boolean).length} new for your collection. Best: ${best.name} (${RAR[best.rarity]}). Now using: ${fitted.map((c) => c.name).join(', ')}.`, 'good');
+  $('packButtons').innerHTML = `<button class="btn" id="againBtn" ${S.game.credits < S.crate.price ? 'disabled' : ''}>Open another</button><button class="btn ghost small" data-go="kit">See your kit</button>`;
+  $('againBtn').onclick = openPack;
+}
+
+/* New kit goes straight on if its slot is empty, or if it's gear that earns more than what's in use. */
+async function autoEquip(items) {
+  const fitted = [];
+  for (const it of items) {
+    const c = S.collectibles.find((x) => x.id === it.id) || it;
+    if (!c.slot) continue;
+    const cur = [...S.owned.values()].find((o) => o.equipped_slot === c.slot);
+    const curItem = cur && S.collectibles.find((x) => x.id === cur.collectible_id);
+    const better = !cur || (c.kind === 'gear' && (c.perks?.coin_bonus || 0) > (curItem?.perks?.coin_bonus || 0));
+    if (!better || cur?.collectible_id === c.id) continue;
+    const { error } = await db.rpc('equip_item', { p_game: S.game.id, p_item: c.id, p_slot: null });
+    if (!error) { fitted.push(c); await refreshGame(); }
+  }
+  return fitted;
+}
+
+/* ===================== Kit ===================== */
+function openKit() {
+  show('kit'); S.pick = null;
+  const fs = ['all', 'owned', 'gear', 'cosmetic'];
+  $('filters').innerHTML = fs.map((f) => `<button aria-pressed="${S.filter === f}" data-f="${f}">${{ all: 'All', owned: 'Collected', gear: 'Gear', cosmetic: 'Looks' }[f]}</button>`).join('');
+  renderKit();
+}
+$('filters').onclick = (e) => { const b = e.target.closest('[data-f]'); if (!b) return; S.filter = b.dataset.f; openKit(); };
+function renderKit() {
+  $('kitBonus').textContent = `Gear bonus +${money(S.perks?.coin_bonus ?? 0)} per answer`;
+  const inSlot = (key) => [...S.owned.values()].find((o) => o.equipped_slot === key);
+  $('slots').innerHTML = (S.theme.slots || []).map((s) => {
+    const o = inSlot(s.key), c = o && S.collectibles.find((x) => x.id === o.collectible_id);
+    const owned = ownedFor(s.key).length;
+    const inner = c ? cardHTML(c, { equipped: true })
+      : `<div class="empty">${SLOT_ICON[s.key] || '★'}<br>Empty${owned ? `<b>${owned} to choose from</b>` : ''}</div>`;
+    return `<div class="slot${S.pick === s.key ? ' open' : ''}"><h4>${esc(s.label)}</h4><button class="slotbtn" data-slot="${esc(s.key)}" aria-label="${esc(s.label)}: ${c ? esc(c.name) : 'empty'}. Choose">${inner}</button></div>`;
+  }).join('');
+  const order = { legendary: 0, epic: 1, rare: 2, common: 3 };
+  const list = S.collectibles
+    .filter((c) => S.filter === 'all' || (S.filter === 'owned' ? S.owned.has(c.id) : c.kind === S.filter))
+    .sort((a, b) => ((a.unlock_tier || 1) - (b.unlock_tier || 1)) || (S.owned.has(b.id) - S.owned.has(a.id)) || order[a.rarity] - order[b.rarity] || a.id.localeCompare(b.id));
+  // One set per venture: what you've found, and which sets open up as the business grows
+  const tierNames = S.theme.tier_names || [], myTier = S.rank?.tier || S.game.rank_tier || 1;
+  let html = '', lastTier = null;
+  for (const c of list) {
+    const t = c.unlock_tier || 1;
+    if (t !== lastTier && tierNames.length > 1) {
+      lastTier = t;
+      const set = S.collectibles.filter((x) => (x.unlock_tier || 1) === t);
+      const found = set.filter((x) => S.owned.has(x.id)).length;
+      const open = t <= myTier;
+      html += `<div class="set-head${open ? '' : ' locked'}"><h4>${esc(tierNames[t - 1] || 'Set ' + t)} set</h4><span>${open ? `${found} of ${set.length} found` : `Unlocks at ${esc(tierNames[t - 1] || 'a later venture')}`}</span></div>`;
+    }
+    const o = S.owned.get(c.id);
+    html += o ? cardHTML(c, { button: true, equipped: !!o.equipped_slot, qty: o.quantity }) : cardHTML(c, { locked: true });
+  }
+  $('collection').innerHTML = html || `<p>Nothing here yet. Open a ${esc(S.crate?.name || 'crate')} to start your collection.</p>`;
+  renderPicker();
+}
+/* Items you own that fit a slot, best first. */
+const RANK = { legendary: 0, epic: 1, rare: 2, common: 3 };
+function ownedFor(slot) {
+  return S.collectibles.filter((c) => c.slot === slot && S.owned.has(c.id))
+    .sort((a, b) => (b.perks?.coin_bonus || 0) - (a.perks?.coin_bonus || 0) || RANK[a.rarity] - RANK[b.rarity]);
+}
+function renderPicker() {
+  const el = $('picker');
+  if (!S.pick) { el.hidden = true; el.innerHTML = ''; return; }
+  const label = slotLabel(S.pick), items = ownedFor(S.pick);
+  const inUse = [...S.owned.values()].find((o) => o.equipped_slot === S.pick);
+  el.hidden = false;
+  el.innerHTML = `<h3>${esc(label)}</h3>`
+    + (items.length
+      ? `<p style="margin:0;color:var(--soft)">Tap one to use it.</p><div class="row">${items.map((c) => cardHTML(c, { button: true, equipped: inUse?.collectible_id === c.id, qty: S.owned.get(c.id)?.quantity })).join('')}</div>`
+      : `<p style="margin:0;color:var(--soft)">You haven't found a ${esc(label.toLowerCase())} yet. Open a ${esc(S.crate?.name || 'crate')} to get one.</p>`)
+    + `<div class="actions">${inUse ? `<button class="btn ghost small" data-unequip="${esc(S.pick)}">Take it off</button>` : ''}${items.length ? '' : `<button class="btn small" data-go="pack">Go to crates</button>`}<button class="btn ghost small" data-close>Close</button></div>`;
+}
+async function equip(c) {
+  const { error } = await db.rpc('equip_item', { p_game: S.game.id, p_item: c.id, p_slot: null });
+  if (error) { $('kitHelp').textContent = nice(error); return false; }
+  await refreshGame(); S.pick = null; renderKit(); Sound.fx('equip');
+  $('kitHelp').textContent = c.kind === 'gear' ? `${c.name} is in use. Gear bonus now +${money(S.perks.coin_bonus)} per right answer.` : `${c.name} is on show.`;
+  return true;
+}
+$('picker').onclick = async (e) => {
+  const item = e.target.closest('[data-item]');
+  if (item) return equip(S.collectibles.find((x) => x.id === item.dataset.item));
+  const off = e.target.closest('[data-unequip]');
+  if (off) {
+    const { error } = await db.rpc('unequip_slot', { p_game: S.game.id, p_slot: off.dataset.unequip });
+    if (error) { $('kitHelp').textContent = nice(error); return; }
+    await refreshGame(); S.pick = null; renderKit(); return;
+  }
+  if (e.target.closest('[data-close]')) { S.pick = null; renderKit(); }
+};
+$('collection').onclick = (e) => {
+  const b = e.target.closest('[data-item]'); if (!b) return;
+  equip(S.collectibles.find((x) => x.id === b.dataset.item));
+};
+$('slots').onclick = (e) => {
+  const b = e.target.closest('[data-slot]'); if (!b) return;
+  S.pick = S.pick === b.dataset.slot ? null : b.dataset.slot;
+  renderKit();
+  if (S.pick) $('picker').scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+};
+
+/* ===================== Test tools (admins, #dev only) ===================== */
+let isAdmin = false;
+async function devInit() {
+  if (S.user && location.hash === '#dev' && !isAdmin) { const { data } = await db.rpc('is_admin'); isAdmin = data === true; }
+  $('devbar').hidden = !(isAdmin && location.hash === '#dev');
+  devButtons();
+}
+function devButtons() {
+  const answering = !$('v-play').classList.contains('hidden') && S.q && !$('answerBtn').disabled;
+  $('devRight').disabled = !answering; $('devWrong').disabled = !answering;
+  $('devCredits').disabled = !S.game;
+}
+window.addEventListener('hashchange', devInit);
+new MutationObserver(devButtons).observe($('app'), { subtree: true, attributes: true, attributeFilter: ['class', 'disabled'] });
+async function devSubmit(text) {
+  $('answerIn').value = text;
+  const wait = 2100 - (Date.now() - (S.q.servedAt || 0));
+  if (wait > 0) { $('devMsg').textContent = 'Waiting out the 2-second rule…'; await new Promise((r) => setTimeout(r, wait)); }
+  $('devMsg').textContent = '';
+  $('answerForm').requestSubmit();
+}
+$('devRight').onclick = async () => {
+  $('devRight').disabled = true;
+  const { data, error } = await db.rpc('dev_answer', { p_attempt: S.q.attempt_id });
+  if (error || !data) { $('devMsg').textContent = error ? nice(error) : 'No answer found'; return devButtons(); }
+  devSubmit(data);
+};
+$('devWrong').onclick = () => devSubmit('wrong on purpose');
+$('devCredits').onclick = async () => {
+  const { data, error } = await db.rpc('dev_add_credits', { p_game: S.game.id, p_amount: 500 });
+  if (error) { $('devMsg').textContent = nice(error); return; }
+  S.game.credits = data; $('devMsg').textContent = `Now ${money(data)}`;
+  if (!$('v-hub').classList.contains('hidden')) openHub();
+  if (!$('v-pack').classList.contains('hidden')) openPack();
+  $('playCash').textContent = money(data);
+};
+
+/* ===================== Start ===================== */
+(async () => {
+  const { data } = await db.auth.getSession();
+  if (data?.session) { S.user = data.session.user; openWho(); } else show('auth');
+})();
+</script>
+</body>
+</html>
