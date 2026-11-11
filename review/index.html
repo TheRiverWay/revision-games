@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Question review · LevelWise</title>
+<link rel="icon" type="image/png" href="/brand/icon.png">
+<script src="/vendor/supabase-2.119.0.js"></script>
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+:root { --ink:#172C5B; --soft:#5E6886; --line:#D6DDEA; --bg:#F6F5F1; --card:#fff; --sand:#E8EEF7; --red:#14AFAA; --gold:#EE9C2B; --green:#0E8783; --bad:#C2412D; --warn:#9A5200; }
+* { box-sizing:border-box; }
+body { margin:0; font:16px/1.55 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); }
+main { max-width:900px; margin:0 auto; padding:24px 18px 80px; }
+h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:19px; margin:0; }
+.muted { color:var(--soft); font-size:14px; }
+.hidden { display:none !important; }
+button, input, select, textarea { font:inherit; }
+.btn { border:0; border-radius:8px; padding:9px 14px; background:var(--green); color:#fff; cursor:pointer; font-weight:600; }
+.btn.ghost { background:transparent; color:var(--ink); border:1px solid #C9D2E6; }
+.btn.warn { background:var(--gold); color:var(--ink); }
+.btn.small { padding:4px 10px; font-size:13px; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+input, select, textarea { padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+textarea { width:100%; min-height:70px; }
+label { display:block; font-size:14px; font-weight:600; margin:10px 0 4px; }
+.row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.msg { min-height:22px; font-weight:600; font-size:14px; margin-top:8px; }
+.msg.bad { color:var(--bad); } .msg.good { color:var(--green); }
+.panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; }
+.top { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:end; margin-bottom:14px; }
+.bar { height:10px; background:var(--sand); border-radius:99px; overflow:hidden; margin:8px 0 4px; }
+.bar i { display:block; height:100%; background:var(--green); }
+.intro { background:var(--sand); border-radius:12px; padding:14px 16px; font-size:15px; margin-bottom:16px; }
+.intro ol { margin:6px 0 0; padding-left:20px; }
+.filters { position:sticky; top:0; background:var(--bg); padding:10px 0; z-index:2; border-bottom:1px solid var(--line); margin-bottom:14px; }
+.q { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:14px; }
+.q.done { border-left:6px solid var(--green); } .q.flag { border-left:6px solid var(--gold); }
+.qhead { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:baseline; }
+.tag { display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--sand); margin-right:4px; }
+.tag.good { background:#DCEFE5; color:var(--green); } .tag.warn { background:#F6E7C8; color:var(--warn); } .tag.bad { background:#F6DCD9; color:var(--bad); }
+.main-q { font-size:19px; font-weight:600; margin:12px 0 6px; }
+.ans { font-weight:700; color:var(--green); }
+.work { background:var(--sand); border-radius:10px; padding:10px 14px; margin:10px 0; font-size:15px; }
+.work ol { margin:4px 0 0; padding-left:20px; }
+.samples { margin-top:10px; border-top:1px dashed var(--line); padding-top:8px; }
+.sample { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:6px 0; border-bottom:1px solid #E3E8F1; font-size:15px; }
+.sample.rej { opacity:.45; text-decoration:line-through; }
+.actions { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+.last { margin-top:10px; font-size:14px; }
+
+/* LevelWise brand layer */
+body { font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+h1, h2, h3 { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700; letter-spacing: 0; }
+body::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, #172C5B 0 20%, #2854AC 20% 40%, #14AFAA 40% 60%, #EE9C2B 60% 80%, #69BD56 80%); }
+.lw-logo { display: block; height: 40px; width: auto; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<main>
+  <section id="v-auth" class="hidden">
+    <img class="lw-logo" src="/brand/logo.png" alt="LevelWise" width="117" height="40">
+    <h1>Question review</h1>
+    <p class="muted">For tutors checking the question bank.</p>
+    <form id="authForm" class="panel" style="max-width:420px">
+      <label for="email">Email</label><input id="email" type="email" required autocomplete="email" style="width:100%">
+      <label for="password">Password</label><input id="password" type="password" required autocomplete="current-password" style="width:100%">
+      <div class="row" style="margin-top:14px"><button class="btn" id="authBtn">Sign in</button></div>
+      <div class="msg" id="authMsg" role="status"></div>
+    </form>
+  </section>
+
+  <section id="v-review" class="hidden">
+    <div class="top">
+      <div><img class="lw-logo" src="/brand/logo.png" alt="LevelWise" width="117" height="40"><h1>Question review</h1><p class="muted" id="who"></p></div>
+      <button class="btn ghost small" id="signOut">Sign out</button>
+    </div>
+    <div class="panel" style="margin-bottom:14px">
+      <b id="progText"></b>
+      <div class="bar"><i id="progBar" style="width:0"></i></div>
+      <span class="muted" id="progSub"></span>
+    </div>
+    <div class="intro">
+      <b>How this works.</b> Each card is one question type. The numbers change every time a student sees it, so you’re checking the question itself, plus a few example number sets.
+      <ol>
+        <li>Read the question, the answer and the worked solution.</li>
+        <li>If one example has silly numbers, tap <b>Bad numbers</b> on it. That set is never used again.</li>
+        <li>If it’s right, tap <b>Approve</b>. If something needs fixing, tap <b>Needs changes</b> and say what.</li>
+      </ol>
+    </div>
+    <div class="filters row">
+      <select id="fTopic" aria-label="Topic"><option value="">All topics</option></select>
+      <select id="fState" aria-label="Status">
+        <option value="todo">Still to review</option><option value="">Everything</option>
+        <option value="approved">Approved</option><option value="needs_changes">Needs changes</option>
+      </select>
+      <span class="muted" id="shown"></span>
+    </div>
+    <div class="msg" id="topMsg" role="status"></div>
+    <div id="list"></div>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://ceslgssjxcgqtgqtymqv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-EqMrnc25mY92Q4Irw8pMA_h_iS2TkB';
+const db = window.__MOCK_DB__ || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const S = { user: null, items: [] };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const say = (id, text, kind = '') => { const el = $(id); if (!el) return; el.textContent = text || ''; el.className = 'msg ' + kind; };
+const nice = (e) => (e && e.message) ? String(e.message).replace(/^.*?:\s(?=[A-Z])/, '') : 'Something went wrong.';
+const when = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+function show(v) { ['auth', 'review'].forEach((x) => $('v-' + x).classList.toggle('hidden', x !== v)); }
+
+/* Worked-explanation engine, shared with the game pages */
+const WORK_FN = {
+  sum: (l) => l.reduce((a, b) => a + b, 0),
+  min: (...a) => Math.min(...a.flat()), max: (...a) => Math.max(...a.flat()),
+  abs: Math.abs, floor: Math.floor, sqrt: Math.sqrt,
+  round: (x, dp = 0) => Math.round((x + Number.EPSILON) * 10 ** dp) / 10 ** dp,
+  fixed: (x, dp) => (Math.round((x + Number.EPSILON) * 10 ** dp) / 10 ** dp).toFixed(dp),
+  roundto: (x, to) => Math.round(x / to) * to,
+  hcf: (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; },
+  lcm: (a, b) => a / WORK_FN.hcf(a, b) * b,
+  frac: (n, d) => { const h = WORK_FN.hcf(n, d); return d / h === 1 ? String(n / h) : `${n / h}/${d / h}`; },
+  sorted: (l) => [...l].sort((a, b) => a - b).join(', '),
+  median: (l) => { const s = [...l].sort((a, b) => a - b), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; },
+  mode: (l) => { const c = {}; l.forEach((x) => { c[x] = (c[x] || 0) + 1; }); return Number(Object.keys(c).sort((a, b) => c[b] - c[a])[0]); },
+  times: (l, x) => l.filter((y) => y === x).length,
+  multiples: (n, upto) => { const o = []; for (let k = n; k <= upto; k += n) o.push(k); return o.join(', '); },
+  hm: (h) => { const t = Math.round(h * 60), hh = Math.floor(t / 60), mm = t % 60;
+    return [hh ? `${hh} hour${hh > 1 ? 's' : ''}` : '', mm ? `${mm} minutes` : ''].filter(Boolean).join(' ') || '0 minutes'; },
+  addmins: (start, m) => { const [h, mi] = String(start).split(':').map(Number), t = (h * 60 + mi + m) % 1440;
+    return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; },
+  nth: (d, c) => `${d}n${c > 0 ? ' + ' + c : c < 0 ? ' − ' + -c : ''}`,
+  better: (a, b) => (a <= b ? 'Deal 1' : 'Deal 2'),
+  digit: (x, place) => Math.floor(Math.round(Math.abs(x) * 10 ** place * 1e6) / 1e6) % 10,
+  updown: (d) => (d >= 5 ? '5 or more, so round up' : 'less than 5, so it stays the same'),
+};
+function workEval(src, vars) {
+  const toks = src.match(/\d+(?:\.\d+)?|[A-Za-z_]\w*|[-+*/^(),]/g) || [];
+  if (toks.join('') !== src.replace(/\s+/g, '')) throw new Error('bad expression: ' + src);
+  let i = 0;
+  const peek = () => toks[i], take = (t) => { if (toks[i] !== t) throw new Error('expected ' + t); i++; };
+  const expr = () => { let v = term(); while (peek() === '+' || peek() === '-') { const op = toks[i++], r = term(); v = op === '+' ? v + r : v - r; } return v; };
+  const term = () => { let v = power(); while (peek() === '*' || peek() === '/') { const op = toks[i++], r = power(); v = op === '*' ? v * r : v / r; } return v; };
+  const power = () => { const b = unary(); if (peek() === '^') { i++; return b ** power(); } return b; };
+  const unary = () => (peek() === '-' ? (i++, -unary()) : atom());
+  const atom = () => {
+    const t = toks[i++];
+    if (t === undefined) throw new Error('unexpected end');
+    if (t === '(') { const v = expr(); take(')'); return v; }
+    if (/^\d/.test(t)) return Number(t);
+    if (peek() === '(') {
+      const f = WORK_FN[t]; if (!f) throw new Error('unknown function ' + t);
+      i++; const args = [];
+      if (peek() !== ')') { args.push(expr()); while (peek() === ',') { i++; args.push(expr()); } }
+      take(')'); return f(...args);
+    }
+    if (t === 'pi') return Math.PI;
+    if (!(t in vars)) throw new Error('unknown value ' + t);
+    return vars[t];
+  };
+  const v = expr();
+  if (i !== toks.length) throw new Error('left over in ' + src);
+  return v;
+}
+function workLine(line, vars) {
+  return line.replace(/(£|€)?\{([^{}]+)\}/g, (m, cur, src) => {
+    let v = workEval(src.trim(), vars);
+    if (typeof v === 'number') {
+      if (!Number.isFinite(v)) throw new Error('not a number in ' + src);
+      v = Math.round(v * 1e9) / 1e9;
+      v = cur && !Number.isInteger(v) ? v.toFixed(2) : v.toLocaleString('en-GB', { maximumFractionDigits: 3 });
+    } else if (Array.isArray(v)) v = v.join(', ');
+    return (cur || '') + v;
+  });
+}
+
+
+function fillQ(text, vars) {
+  try { return workLine(String(text), vars || {}); }
+  catch (e) { return String(text).replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars ? vars[k] : m)); }
+}
+function worked(explain, vars) {
+  if (!Array.isArray(explain)) return null;
+  try { return explain.map((l) => workLine(l, vars || {})); } catch (e) { return null; }
+}
+const stateOf = (it) => it.last_review?.verdict || 'todo';
+
+$('authForm').onsubmit = async (e) => {
+  e.preventDefault();
+  $('authBtn').disabled = true; say('authMsg', 'Signing in…');
+  const { data, error } = await db.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+  $('authBtn').disabled = false;
+  if (error) return say('authMsg', nice(error), 'bad');
+  S.user = data.user; start();
+};
+$('signOut').onclick = async () => { await db.auth.signOut(); S.user = null; show('auth'); };
+$('fTopic').onchange = render; $('fState').onchange = render;
+
+async function start() {
+  const { data } = await db.rpc('is_reviewer');
+  if (data !== true) { show('auth'); return say('authMsg', 'This account isn’t set up as a reviewer yet. Ask Joel to add you.', 'bad'); }
+  show('review'); $('who').textContent = `Signed in as ${S.user?.email || ''}`;
+  await load();
+  const topics = [...new Set(S.items.map((i) => i.topic))];
+  $('fTopic').innerHTML = '<option value="">All topics</option>' + topics.map((t) => `<option>${esc(t)}</option>`).join('');
+  render();
+}
+async function load() {
+  const { data, error } = await db.rpc('review_overview');
+  if (error) return say('topMsg', nice(error), 'bad');
+  S.items = data || [];
+}
+function progress() {
+  const done = S.items.filter((i) => stateOf(i) === 'approved').length, flag = S.items.filter((i) => stateOf(i) === 'needs_changes').length;
+  $('progText').textContent = `${done} of ${S.items.length} questions approved`;
+  $('progBar').style.width = (S.items.length ? (done / S.items.length) * 100 : 0) + '%';
+  $('progSub').textContent = `${flag} need changes · ${S.items.length - done - flag} still to review`;
+}
+
+function card(it) {
+  const st = stateOf(it), s0 = it.samples?.[0], lines = s0 ? worked(it.explain, s0.vars) : null;
+  const steps = lines || it.steps || [];
+  const refs = it.refs ? ['AQA', 'Edexcel', 'OCR'].filter((b) => it.refs[b]).map((b) => `${b} ${esc(it.refs[b])}`).join(' · ') : '';
+  const c = it.counts || {};
+  return `<article class="q ${st === 'approved' ? 'done' : st === 'needs_changes' ? 'flag' : ''}" data-tpl="${esc(it.id)}">
+    <div class="qhead"><h2>${esc(it.topic)} <span class="muted">${esc(it.id)}</span></h2>
+      <div><span class="tag">Difficulty ${esc(it.difficulty)}</span><span class="tag">${({ calculator: 'Calculator', 'non-calculator': 'Non-calculator', either: 'Either paper' })[it.calculator] || esc(it.calculator)}</span>
+      ${st === 'approved' ? '<span class="tag good">Approved</span>' : st === 'needs_changes' ? '<span class="tag warn">Needs changes</span>' : ''}</div></div>
+    <p class="muted" style="margin:4px 0 0">${esc(it.spec_point || '')}${refs ? ` · ${refs}` : ''}</p>
+    ${s0 ? `<p class="main-q">${esc(fillQ(it.wording, s0.vars))}</p><p>Answer: <span class="ans">${esc(s0.answer)}</span></p>` : '<p class="muted">No number sets left.</p>'}
+    ${steps.length ? `<div class="work"><b>Worked solution shown to students</b><ol>${steps.map((l) => `<li>${esc(l)}</li>`).join('')}</ol>${it.tip ? `<p class="muted" style="margin:6px 0 0">Tip: ${esc(it.tip)}</p>` : ''}</div>` : ''}
+    <div class="samples"><span class="muted">Example number sets (${c.unchecked || 0} unchecked, ${c.approved || 0} approved, ${c.rejected || 0} removed)</span>
+      ${(it.samples || []).map((s) => `<div class="sample ${s.status === 'rejected' ? 'rej' : ''}" data-var="${s.id}"><span>${esc(fillQ(it.wording, s.vars))} → <b>${esc(s.answer)}</b></span>
+        ${s.status === 'rejected' ? `<button class="btn ghost small" data-undo="${s.id}">Undo</button>` : `<button class="btn ghost small" data-bad="${s.id}">Bad numbers</button>`}</div>`).join('')}</div>
+    ${it.last_review ? `<p class="last muted">Last: <b>${it.last_review.verdict === 'approved' ? 'Approved' : 'Needs changes'}</b> by ${esc(it.last_review.by)}, ${when(it.last_review.at)}${it.last_review.note ? `: “${esc(it.last_review.note)}”` : ''}</p>` : ''}
+    <div class="actions"><button class="btn" data-approve>Approve</button><button class="btn warn" data-flag>Needs changes</button></div>
+    <div class="noteBox hidden"><label>What needs changing?</label><textarea maxlength="1000"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn small" data-sendflag>Save note</button><button class="btn ghost small" data-cancel>Cancel</button></div></div>
+    <div class="msg" role="status"></div></article>`;
+}
+
+function render() {
+  progress();
+  const t = $('fTopic').value, st = $('fState').value;
+  const list = S.items.filter((i) => (!t || i.topic === t) && (!st || stateOf(i) === st));
+  $('shown').textContent = `${list.length} shown`;
+  $('list').innerHTML = list.map(card).join('') || '<p class="muted">Nothing here. Nice work.</p>';
+}
+
+async function refreshOne(id, msg, kind) {
+  await load(); render();
+  const el = document.querySelector(`[data-tpl="${CSS.escape(id)}"] .msg`);
+  if (el) { el.textContent = msg; el.className = 'msg ' + kind; } else say('topMsg', msg, kind);
+}
+
+$('list').addEventListener('click', async (e) => {
+  const art = e.target.closest('[data-tpl]'); if (!art) return;
+  const id = art.dataset.tpl, m = art.querySelector(':scope > .msg');
+  const fail = (err) => { m.textContent = nice(err); m.className = 'msg bad'; };
+  if (e.target.closest('[data-approve]')) {
+    const { data, error } = await db.rpc('review_template', { p_template: id, p_verdict: 'approved', p_note: null });
+    if (error) return fail(error);
+    return refreshOne(id, `${id} approved (${data.variants_approved} number sets).`, 'good');
+  }
+  if (e.target.closest('[data-flag]')) { art.querySelector('.noteBox').classList.remove('hidden'); art.querySelector('textarea').focus(); return; }
+  if (e.target.closest('[data-cancel]')) { art.querySelector('.noteBox').classList.add('hidden'); return; }
+  if (e.target.closest('[data-sendflag]')) {
+    const { error } = await db.rpc('review_template', { p_template: id, p_verdict: 'needs_changes', p_note: art.querySelector('textarea').value });
+    if (error) return fail(error);
+    return refreshOne(id, `Thanks, ${id} flagged for Joel.`, 'good');
+  }
+  const bad = e.target.closest('[data-bad]'), undo = e.target.closest('[data-undo]');
+  if (bad || undo) {
+    const { error } = await db.rpc('review_variant', { p_variant: Number((bad || undo).dataset[bad ? 'bad' : 'undo']), p_status: bad ? 'rejected' : 'unchecked' });
+    if (error) return fail(error);
+    return refreshOne(id, bad ? 'Number set removed.' : 'Number set restored.', 'good');
+  }
+});
+
+(async () => {
+  const { data } = await db.auth.getSession();
+  if (data?.session) { S.user = data.session.user; start(); } else show('auth');
+})();
+</script>
+</body>
+</html>

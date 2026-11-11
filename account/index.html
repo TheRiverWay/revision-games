@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Your account · LevelWise</title>
+<link rel="icon" type="image/png" href="/brand/icon.png">
+<script src="/vendor/supabase-2.119.0.js"></script>
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito'; src:url('/fonts/nunito-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+:root { --ink:#172C5B; --soft:#5E6886; --line:#D6DDEA; --bg:#F6F5F1; --sand:#E8EEF7; --red:#14AFAA; --green:#0E8783; --bad:#C2412D; }
+* { box-sizing:border-box; }
+body { margin:0; font:16px/1.55 system-ui, -apple-system, Segoe UI, sans-serif; color:var(--ink); background:var(--bg); }
+.stripe { height:10px; background:repeating-linear-gradient(90deg, var(--red) 0 40px, var(--bg) 40px 80px); }
+main { max-width:560px; margin:0 auto; padding:28px 18px 70px; }
+h1 { font-size:28px; margin:0 0 4px; } h2 { font-size:19px; margin:0 0 6px; }
+.brand { font-weight:800; letter-spacing:.5px; color:var(--soft); font-size:14px; text-transform:uppercase; }
+.muted { color:var(--soft); font-size:14px; }
+.hidden { display:none !important; }
+.panel { background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:14px; }
+label { display:block; font-size:14px; font-weight:600; margin:10px 0 4px; }
+input, textarea { width:100%; font:inherit; padding:9px 11px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+.btn { border:0; border-radius:8px; padding:9px 16px; background:var(--green); color:#fff; font:inherit; font-weight:600; cursor:pointer; margin-top:12px; }
+.btn.ghost { background:transparent; color:var(--ink); border:1px solid #C9D2E6; }
+.btn.danger { background:var(--bad); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.link { background:none; border:0; padding:0; font:inherit; color:var(--ink); text-decoration:underline; cursor:pointer; }
+.msg { min-height:22px; font-weight:600; font-size:14px; margin-top:8px; }
+.msg.bad { color:var(--bad); } .msg.good { color:var(--green); }
+ul.kids { margin:6px 0 0; padding-left:20px; }
+.warn { background:#FCEDEA; border-radius:10px; padding:10px 12px; font-size:15px; }
+
+/* LevelWise brand layer */
+body { font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+h1, h2, h3 { font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700; letter-spacing: 0; }
+body::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, #172C5B 0 20%, #2854AC 20% 40%, #14AFAA 40% 60%, #EE9C2B 60% 80%, #69BD56 80%); }
+.lw-logo { display: block; height: 40px; width: auto; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<main>
+  <img class="lw-logo" src="/brand/logo.png" alt="LevelWise" width="117" height="40">
+
+  <!-- Signed out: sign in, or ask for a reset link -->
+  <section id="v-signin" class="hidden">
+    <h1>Your account</h1>
+    <form id="signinForm" class="panel">
+      <label for="email">Email</label><input id="email" type="email" required autocomplete="email">
+      <label for="password">Password</label><input id="password" type="password" required autocomplete="current-password">
+      <button class="btn" id="signinBtn">Sign in</button>
+      <p style="margin:12px 0 0"><button type="button" class="link" id="toForgot">Forgot your password?</button></p>
+      <div class="msg" id="signinMsg" role="status"></div>
+    </form>
+  </section>
+
+  <section id="v-forgot" class="hidden">
+    <h1>Reset your password</h1>
+    <form id="forgotForm" class="panel">
+      <p class="muted" style="margin:0">Enter the email you signed up with and we’ll send you a link to choose a new password.</p>
+      <label for="fEmail">Email</label><input id="fEmail" type="email" required autocomplete="email">
+      <button class="btn" id="forgotBtn">Send reset link</button>
+      <p style="margin:12px 0 0"><button type="button" class="link" data-go="signin">Back to sign in</button></p>
+      <div class="msg" id="forgotMsg" role="status"></div>
+    </form>
+  </section>
+
+  <!-- Arrived from the reset email -->
+  <section id="v-recover" class="hidden">
+    <h1>Choose a new password</h1>
+    <form id="recoverForm" class="panel">
+      <label for="rPass">New password</label><input id="rPass" type="password" required minlength="8" autocomplete="new-password">
+      <label for="rPass2">Type it again</label><input id="rPass2" type="password" required minlength="8" autocomplete="new-password">
+      <button class="btn" id="recoverBtn">Save new password</button>
+      <div class="msg" id="recoverMsg" role="status"></div>
+    </form>
+  </section>
+
+  <!-- Signed in -->
+  <section id="v-account" class="hidden">
+    <h1>Your account</h1>
+    <p class="muted" id="who"></p>
+
+    <div class="panel">
+      <h2>Children</h2>
+      <div id="kids"></div>
+    </div>
+
+    <form id="passForm" class="panel">
+      <h2>Change password</h2>
+      <label for="nPass">New password</label><input id="nPass" type="password" required minlength="8" autocomplete="new-password">
+      <label for="nPass2">Type it again</label><input id="nPass2" type="password" required minlength="8" autocomplete="new-password">
+      <button class="btn">Change password</button>
+      <div class="msg" id="passMsg" role="status"></div>
+    </form>
+
+    <div class="panel" id="delPanel">
+      <h2>Delete account</h2>
+      <div id="delPending" class="hidden">
+        <p class="warn">You’ve asked us to delete this account. We’ll delete it, and everything in it, by <b id="delBy"></b>. Changed your mind?</p>
+        <button class="btn ghost" id="delCancel">Keep my account</button>
+      </div>
+      <form id="delForm">
+        <p class="muted" style="margin:0">This deletes your account, your children’s games, progress and answers. It can’t be undone. We’ll do it within 30 days and email you when it’s done.</p>
+        <label for="delReason">Anything you’d like to tell us? (optional)</label><textarea id="delReason" maxlength="500" rows="2"></textarea>
+        <label for="delConfirm">Type DELETE to confirm</label><input id="delConfirm" autocomplete="off">
+        <button class="btn danger" id="delBtn" disabled>Ask us to delete my account</button>
+      </form>
+      <div class="msg" id="delMsg" role="status"></div>
+    </div>
+
+    <button class="btn ghost" id="signOut">Sign out</button>
+    <p class="muted" style="margin-top:22px">Questions about your data? Email <a href="mailto:hello@levelwise.co.uk">hello@levelwise.co.uk</a>.</p>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://ceslgssjxcgqtgqtymqv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-EqMrnc25mY92Q4Irw8pMA_h_iS2TkB';
+const db = window.__MOCK_DB__ || supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const say = (id, text, kind = '') => { const el = $(id); el.textContent = text || ''; el.className = 'msg ' + kind; };
+const nice = (e) => (e && e.message) ? String(e.message).replace(/^.*?:\s(?=[A-Z])/, '') : 'Something went wrong. Try again.';
+const day = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+let recovering = /type=recovery/.test(location.hash);
+function show(v) { ['signin', 'forgot', 'recover', 'account'].forEach((x) => $('v-' + x).classList.toggle('hidden', x !== v)); }
+function checkPair(a, b, msgId) {
+  if ($(a).value.length < 8) { say(msgId, 'Use at least 8 characters.', 'bad'); return null; }
+  if ($(a).value !== $(b).value) { say(msgId, 'The two passwords don’t match.', 'bad'); return null; }
+  return $(a).value;
+}
+
+document.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) show(g.dataset.go); });
+$('toForgot').onclick = () => { $('fEmail').value = $('email').value; show('forgot'); };
+
+$('signinForm').onsubmit = async (e) => {
+  e.preventDefault(); $('signinBtn').disabled = true; say('signinMsg', 'Signing in…');
+  const { error } = await db.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+  $('signinBtn').disabled = false;
+  if (error) return say('signinMsg', nice(error), 'bad');
+  say('signinMsg', ''); openAccount();
+};
+
+$('forgotForm').onsubmit = async (e) => {
+  e.preventDefault(); $('forgotBtn').disabled = true;
+  const { error } = await db.auth.resetPasswordForEmail($('fEmail').value.trim(), { redirectTo: location.origin + '/account/' });
+  $('forgotBtn').disabled = false;
+  if (error && /rate|too many/i.test(error.message || '')) return say('forgotMsg', 'Too many tries. Wait a few minutes and try again.', 'bad');
+  say('forgotMsg', 'If that email has an account, a reset link is on its way. Check your junk folder too.', 'good');
+};
+
+$('recoverForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const pw = checkPair('rPass', 'rPass2', 'recoverMsg'); if (!pw) return;
+  $('recoverBtn').disabled = true;
+  const { error } = await db.auth.updateUser({ password: pw });
+  $('recoverBtn').disabled = false;
+  if (error) return say('recoverMsg', nice(error), 'bad');
+  recovering = false; history.replaceState(null, '', location.pathname);
+  await openAccount(); say('passMsg', 'Password saved. You’re signed in.', 'good');
+};
+
+$('passForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const pw = checkPair('nPass', 'nPass2', 'passMsg'); if (!pw) return;
+  const { error } = await db.auth.updateUser({ password: pw });
+  if (error) return say('passMsg', nice(error), 'bad');
+  $('passForm').reset(); say('passMsg', 'Password changed.', 'good');
+};
+
+$('delConfirm').oninput = () => { $('delBtn').disabled = $('delConfirm').value.trim().toUpperCase() !== 'DELETE'; };
+$('delForm').onsubmit = async (e) => {
+  e.preventDefault();
+  if ($('delConfirm').value.trim().toUpperCase() !== 'DELETE') return;
+  const { error } = await db.rpc('request_account_deletion', { p_reason: $('delReason').value });
+  if (error) return say('delMsg', nice(error), 'bad');
+  $('delForm').reset(); $('delBtn').disabled = true;
+  await openAccount(); say('delMsg', 'Request received.', 'good');
+};
+$('delCancel').onclick = async () => {
+  const { error } = await db.rpc('cancel_account_deletion');
+  if (error) return say('delMsg', nice(error), 'bad');
+  await openAccount(); say('delMsg', 'Great, your account stays.', 'good');
+};
+$('signOut').onclick = async () => { await db.auth.signOut(); show('signin'); };
+
+async function openAccount() {
+  const { data, error } = await db.rpc('my_account');
+  if (error) { show('signin'); return say('signinMsg', nice(error), 'bad'); }
+  show('account');
+  $('who').textContent = `Signed in as ${data.email || ''}`;
+  $('kids').innerHTML = data.children.length
+    ? `<ul class="kids">${data.children.map((c) => `<li>${esc(c.nickname)}${c.games ? '' : ' <span class="muted">(no game yet)</span>'}</li>`).join('')}</ul>`
+    : '<p class="muted" style="margin:0">No children on this account yet.</p>';
+  const d = data.deletion;
+  $('delPending').classList.toggle('hidden', !d); $('delForm').classList.toggle('hidden', !!d);
+  if (d) $('delBy').textContent = day(d.delete_by);
+}
+
+db.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') { recovering = true; show('recover'); } });
+(async () => {
+  if (/forgot/.test(location.hash)) return show('forgot');
+  const { data } = await db.auth.getSession();
+  if (recovering && data?.session) return show('recover');
+  if (data?.session) openAccount(); else show('signin');
+})();
+</script>
+</body>
+</html>
