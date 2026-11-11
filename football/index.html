@@ -4,10 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Football Manager Maths</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/vendor/supabase-2.119.0.js"></script>
 <style>
+@font-face { font-family:'Barlow Condensed'; src:url('/fonts/barlow-condensed-500.woff2') format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Barlow Condensed'; src:url('/fonts/barlow-condensed-600.woff2') format('woff2'); font-weight:600; font-display:swap; }
+@font-face { font-family:'Barlow Condensed'; src:url('/fonts/barlow-condensed-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+@font-face { font-family:'Barlow Condensed'; src:url('/fonts/barlow-condensed-800.woff2') format('woff2'); font-weight:800; font-display:swap; }
+@font-face { font-family:'Barlow'; src:url('/fonts/barlow-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Barlow'; src:url('/fonts/barlow-500.woff2') format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Barlow'; src:url('/fonts/barlow-600.woff2') format('woff2'); font-weight:600; font-display:swap; }
+
 :root {
   --pitch: #0e3b2c;
   --pitch-2: #135039;
@@ -302,6 +308,7 @@ details.see-working summary { cursor: pointer; color: var(--flood); font-weight:
           <button class="btn" type="submit" id="authBtn">Sign in</button>
           <button class="btn ghost small" type="button" id="authSwitch">Create an account</button>
         </div>
+        <p class="forgot-link" style="margin:10px 0 0;font-size:14px"><a href="/account/#forgot">Forgot your password?</a> · <a href="/account/">Your account</a></p>
         <div class="msg" id="authMsg" role="status"></div>
       </form>
     </div>

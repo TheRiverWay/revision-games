@@ -3,10 +3,168 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Revision Games</title>
-<meta http-equiv="refresh" content="0; url=football/">
+<title>LevelWise · GCSE maths revision games</title>
+<meta name="description" content="GCSE maths revision games built around the games kids love, made in collaboration with GCSE maths tutors. Coming soon.">
+<meta property="og:title" content="LevelWise · GCSE maths revision games">
+<meta property="og:description" content="GCSE maths games kids actually want to play, built in collaboration with tutors. Coming soon.">
+<link rel="preload" href="/fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" type="image/png" href="/brand/icon.png">
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito Sans'; src:url('/fonts/nunito-sans-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito Sans'; src:url('/fonts/nunito-sans-600.woff2') format('woff2'); font-weight:600; font-display:swap; }
+@font-face { font-family:'Nunito Sans'; src:url('/fonts/nunito-sans-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+:root { --ink:#172C5B; --ink2:#22397A; --cream:#F6F5F1; --sand:#E8EEF7; --line:#D6DDEA; --red:#14AFAA; --gold:#EE9C2B; --green:#0E8783; --soft:#5E6886; }
+* { box-sizing:border-box; margin:0; }
+body { font:18px/1.6 'Nunito Sans', Arial, sans-serif; color:var(--ink); background:var(--cream); }
+h1, h2, h3, .logo { font-family:'Fredoka', Arial, sans-serif; line-height:1.1; }
+a { color:inherit; }
+.wrap { max-width:1080px; margin:0 auto; padding:0 24px; }
+.stripe { height:8px; background:linear-gradient(90deg, #2854AC 0 25%, #14AFAA 25% 50%, #EE9C2B 50% 75%, #69BD56 75%); }
+header.hero { background:var(--ink); color:var(--cream); padding:28px 0 88px; }
+nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:72px; }
+.logo { font-size:28px; font-weight:700; display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo svg { width:36px; height:36px; }
+.pill { display:inline-block; background:var(--gold); color:var(--ink); font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; padding:6px 14px; border-radius:999px; }
+.hero-grid { display:grid; grid-template-columns:1.15fr .85fr; gap:56px; align-items:center; }
+.hero h1 { font-size:clamp(44px, 7vw, 80px); font-weight:700; margin:18px 0 20px; }
+.hero h1 em { font-style:normal; color:var(--gold); }
+.hero p.lead { font-size:21px; color:#C9D2E6; max-width:560px; }
+.btn { display:inline-block; margin-top:32px; background:var(--gold); color:var(--ink); box-shadow:0 5px 0 #B86E10; font-weight:700; text-decoration:none; padding:14px 26px; border-radius:12px; }
+.btn:hover { filter:brightness(1.08); }
+.qcard { background:var(--cream); color:var(--ink); border-radius:20px; padding:24px; box-shadow:0 18px 40px rgba(0,0,0,.35); transform:rotate(1.5deg); }
+.qcard .top { display:flex; justify-content:space-between; gap:10px; font-size:14px; font-weight:700; color:var(--soft); margin-bottom:12px; }
+.qcard .q { font-size:19px; font-weight:600; margin-bottom:16px; }
+.qcard .ans { display:flex; gap:10px; }
+.qcard .box { flex:1; border:2px solid var(--line); border-radius:10px; padding:10px 12px; color:var(--soft); }
+.qcard .go { background:var(--green); color:#fff; border-radius:10px; padding:10px 16px; font-weight:700; }
+.qcard .reward { margin-top:14px; background:var(--sand); border-radius:10px; padding:10px 12px; font-size:15px; font-weight:700; }
+section { padding:88px 0; }
+section h2 { font-size:clamp(32px, 4.5vw, 46px); margin-bottom:14px; }
+.sub { color:var(--soft); font-size:19px; max-width:640px; margin-bottom:44px; }
+.steps { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
+.step { background:#fff; border:1px solid var(--line); border-radius:18px; padding:26px; }
+.step .n { font-family:'Fredoka', Arial, sans-serif; font-size:40px; font-weight:700; color:#0E8783; }
+.step h3 { font-size:23px; margin:6px 0 8px; }
+.step p { color:var(--soft); font-size:17px; }
+.worlds { background:var(--sand); }
+.same { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+.world { background:#fff; border-radius:16px; padding:20px; border-top:6px solid var(--c); }
+.world .tag { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--c); }
+.world p { margin-top:8px; font-size:17px; }
+.world.exam { background:var(--ink); color:var(--cream); }
+.note { margin-top:22px; color:var(--soft); font-size:16px; }
+.tutors { background:var(--ink2); color:var(--cream); border-radius:24px; padding:48px; display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center; }
+.tutors h2 { color:var(--cream); }
+.tutors p { color:#C9D2E6; }
+.tutors ul { list-style:none; padding:0; display:grid; gap:12px; }
+.tutors li { background:rgba(255,255,255,.06); border-radius:12px; padding:12px 16px; }
+.tutors li b { color:var(--gold); }
+.promise { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
+.promise div { padding-left:16px; border-left:4px solid var(--gold); }
+.promise h3 { font-size:21px; margin-bottom:6px; }
+.promise p { color:var(--soft); font-size:17px; }
+.cta { background:var(--ink); color:var(--cream); text-align:center; padding:88px 0; }
+.cta h2 { color:var(--cream); font-size:clamp(32px, 4.5vw, 46px); margin-bottom:14px; }
+.cta p { color:#C9D2E6; max-width:600px; margin:0 auto; }
+footer { background:var(--ink); color:#A9B5D0; font-size:14px; padding:0 0 32px; }
+footer .wrap { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; border-top:1px solid rgba(255,255,255,.1); padding-top:24px; }
+@media (max-width:820px) {
+  .hero-grid, .tutors { grid-template-columns:1fr; }
+  .steps, .same, .promise { grid-template-columns:1fr; }
+  .qcard { transform:none; }
+  nav { margin-bottom:44px; }
+  .tutors { padding:32px 24px; }
+}
+</style>
 </head>
 <body>
-<p><a href="football/">Football Manager Maths</a></p>
+<div class="stripe"></div>
+<header class="hero">
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="/"><img src="/brand/logo-light.png" alt="LevelWise" width="152" height="52" style="height:44px;width:auto"></a>
+      <span class="pill">Coming soon</span>
+    </nav>
+    <div class="hero-grid">
+      <div>
+        <span class="pill">GCSE maths · Foundation</span>
+        <h1>Revision they <em>actually</em> want to play.</h1>
+        <p class="lead">LevelWise turns GCSE maths practice into a game built around the worlds kids already love. Real exam topics, short sessions, proper progress. Built in collaboration with GCSE maths tutors.</p>
+        <a class="btn" href="mailto:hello@levelwise.co.uk?subject=LevelWise%20early%20access">Get early access</a>
+      </div>
+      <div class="qcard" aria-label="Example question">
+        <div class="top"><span>Ratio · Question 4 of 10</span><span>Market Stall, level 3</span></div>
+        <p class="q">Your food stall sells burgers and wraps in the ratio 3 : 2. You sold 45 burgers today. How many wraps did you sell?</p>
+        <div class="ans"><div class="box">Your answer</div><div class="go">Check</div></div>
+        <div class="reward">Right answer: +£10 towards your next Supply Crate</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap">
+      <h2>How it works</h2>
+      <p class="sub">The maths is the same GCSE content every student needs. The world around it is theirs.</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><h3>Starting check</h3><p>A short, plain check across the Foundation topics shows what’s secure and where the gaps are.</p></div>
+        <div class="step"><div class="n">2</div><h3>Their own world</h3><p>We set up a game around what they’re into, with their own names, ranks to climb and kit to collect.</p></div>
+        <div class="step"><div class="n">3</div><h3>Practice that sticks</h3><p>Questions lean towards their weak topics and bring back anything they got wrong until it’s secure.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="worlds">
+    <div class="wrap">
+      <h2>One question, many worlds</h2>
+      <p class="sub">Every theme asks the same exam-standard maths, just dressed for the world they’re playing in.</p>
+      <div class="same">
+        <div class="world" style="--c:#C25A14"><span class="tag">Kitchen Tycoon</span><p>Burgers and wraps sell in the ratio 3 : 2. You sold 45 burgers. How many wraps?</p></div>
+        <div class="world" style="--c:#0E8783"><span class="tag">Field Command</span><p>Ration and water crates load in the ratio 3 : 2. There are 45 ration crates. How many water crates?</p></div>
+        <div class="world exam" style="--c:#EE9C2B"><span class="tag">Exam wording</span><p>The ratio of A to B is 3 : 2. There are 45 of A. Work out the number of B.</p></div>
+      </div>
+      <p class="note">Exam-style wording turns up too, for bonus points, so the real paper feels familiar. More worlds on the way.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="tutors">
+        <div>
+          <h2>Built in collaboration with tutors</h2>
+          <p>We make LevelWise with the people who teach GCSE maths every day, so the practice is the right practice, not just a game with sums in it.</p>
+        </div>
+        <ul>
+          <li><b>Checked by tutors:</b> questions and worked solutions are reviewed by working GCSE maths tutors</li>
+          <li><b>Mapped to the exam:</b> written against the GCSE Foundation content all the boards share</li>
+          <li><b>Works with a tutor too:</b> if your child has one, they can see progress and steer the topics</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="promise">
+        <div><h3>Earned, never bought</h3><p>Everything in the game is won through maths. No ads, no in-game purchases.</p></div>
+        <div><h3>Any exam board</h3><p>Mapped to AQA, Edexcel and OCR Foundation content.</p></div>
+        <div><h3>Parents in the loop</h3><p>See how much practice is happening and which topics are improving.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <div class="wrap">
+      <h2>Coming soon</h2>
+      <p>We’re opening to a small group of families first. Want to hear when places open, or you’re a tutor who’d like to get involved? Drop us a line.</p>
+      <a class="btn" href="mailto:hello@levelwise.co.uk?subject=LevelWise%20early%20access">hello@levelwise.co.uk</a>
+    </div>
+  </div>
+</main>
+<footer>
+  <div class="wrap"><span>© 2026 LevelWise</span><span>GCSE maths revision games</span></div>
+</footer>
 </body>
 </html>
