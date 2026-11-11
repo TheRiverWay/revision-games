@@ -1,0 +1,50 @@
+ALG-01: Thunder Owls' mission score is S = 3W + D, where W is winch rescues and D is supply drops. Find S when W = 0 and D = 7.
+ALG-02: Thunder Owls carried 72 sandbags in trips of 6 bags each. How many trips? Solve 6x = 72.
+ALG-03: Engineers lay 6 m of track per hour, plus 14 m done before breakfast. That's 32 m in total. How many hours?
+ALG-04: Flood water at the rescue camp, in cm above the marker, on days 1 to 4: 5, 12, 19, 26. Find the nth term.
+ANG-01: A rescue ramp meets the flat ground at 147°. What is the angle on the other side?
+ANG-02: A triangular tent at Thunder Owls' camp has angles 48° and 53°. Find the third angle.
+ANG-03: Four guy ropes spread round a tent pole at angles 100°, 80°, 87° and x. Find x.
+ARE-01: Thunder Owls' new base is 112 m by 71 m. How much fencing goes all the way round?
+ARE-02: A helicopter landing field is 106 m by 46 m. What is its area in m²?
+ARE-03: A triangular shelter tarp has base 2 m and height 7 m. What is its area?
+ARE-04: A circular helipad has radius 6 m. What is its area, to 1 decimal place?
+AVG-01: Rescues made by Thunder Owls on each shift: 4, 0, 2, 5, 4, 3. What is the mean number of rescues per shift?
+AVG-02: Recruits' tent-building scores out of 10: 3, 5, 5, 8, 8. What is the median score?
+AVG-03: Supply crates delivered to base each day: 29, 43, 25, 37, 50, 25, 10, 47, 48. Find the mode and the range.
+AVG-04: Thunder Owls averages 3 rescues a day over 8 days. Here are 7 of them: 0, 2, 1, 1, 5, 3, 6. How many rescues on the last day?
+CMP-01: Echo's search dog runs 245 m in 49 seconds. What is its speed in m/s?
+CMP-02: The supply truck drives at 65 km/h for 3 hours to reach the field hospital. How far is it?
+CMP-03: The flood camp is 80 km away and the convoy averages 40 km/h. How long is the journey?
+CMP-04: Thunder Owls spends £228.80 on 20 kg of rice for the relief camp. What is the cost per kg?
+DEC-01: The quartermaster buys a £20.84 tent and a £11.01 lantern, then uses a £6.33 voucher. What do they pay?
+DEC-02: Each first aid kit costs £36.03. The field hospital orders 21. What is the total?
+DEC-03: Deal 1: 8 rolls of bandage for £50.66. Deal 2: 11 rolls of bandage for £10.78. Which deal is better value?
+DEC-04: Echo hikes 9.746 km on a navigation exercise. Round it to 1 decimal places.
+FRA-01: 2/10 of Thunder Owls' £950 supply budget goes on fuel. How much is that?
+FRA-02: 48 of the 58 recruits passed the knot test. Write this as a fraction in its simplest form.
+FRA-03: Echo spends 3/4 of an hour checking radios, then 1/10 of an hour packing kit. What fraction of an hour is that?
+FRA-04: 11/20 of the camp's water tanks are full. What is that as a percentage?
+NUM-01: It's -5°C at the mountain base camp. Overnight it drops by 3°C. What temperature is it now?
+NUM-02: Mission points = 3 × rescues + supply drops. Thunder Owls has 23 rescues and 9 supply drops. How many mission points?
+NUM-03: Two radio beacons beep every 13 and 2 minutes. They just beeped together. After how many minutes do they next beep together?
+NUM-04: The relief camp handed out 73,318 bottles of water this year. Round it to the nearest 1,000.
+PCT-01: 10% of the £1,450 raised for the field hospital buys bandages. How much is that?
+PCT-02: The base's £390 weekly fuel bill rises by 20%. What is the new bill?
+PCT-03: A £60 sleeping bag is cut by 10% in the camp shop sale. What is the new price?
+PCT-04: Thunder Owls found 15 of the 16 hidden map markers. What percentage is that?
+PRO-01: A kit bag holds 28 ration packs and 18 are chocolate flavour. What is the probability of picking chocolate?
+PRO-02: The probability the radio picks up a signal is 0.54. What is the probability it doesn't?
+PRO-03: The probability a supply drop lands on target is 0.8. How many of the next 20 drops do you expect to land on target?
+PRO-04: The search dog found the scent in 12 of 38 drills. Estimate the probability it finds it next time.
+PYT-01: A map board in Thunder Owls' command tent is 8 cm by 15 cm. How long is its diagonal?
+PYT-02: A map board's diagonal is 5 cm and its height is 3 cm. How wide is it?
+RAT-01: Thunder Owls packed 21 water bottles and 24 ration packs. Write the ratio of bottles to packs in its simplest form.
+RAT-02: £1,602 of supplies is shared between the field hospital and the camp kitchen in the ratio 3:3. How much does each get?
+RAT-03: At the field hospital, medics to patients are in the ratio 1:1. There are 26 medics on shift. How many patients can they care for?
+RAT-04: Rescue flights to rescue drives are in the ratio 8:1. What fraction of the rescues were flights?
+UNI-01: Echo's search team walked 6,800 m along the river. How many km is that?
+UNI-02: Thunder Owls starts a bridge-building drill at 15:00. It lasts 110 minutes. When does it finish?
+UNI-03: Thunder Owls buys a tent repair kit from a supplier in Europe for €50. £1 = €1.15. What is that in pounds?
+VOL-01: Thunder Owls' ration box is 3 cm by 13 cm by 17 cm. What is its volume?
+VOL-02: A water carrier at camp is a cylinder with radius 12 cm and height 10 cm. What is its volume, to 1 decimal place?

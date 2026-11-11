@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · LevelWise</title>
+<meta name="description" content="How LevelWise looks after the information of the families, students and tutors who use it.">
+<style>
+@font-face { font-family:'Fredoka'; src:url('/fonts/fredoka.woff2') format('woff2'); font-weight:300 700; font-display:swap; }
+@font-face { font-family:'Nunito Sans'; src:url('/fonts/nunito-sans-400.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Nunito Sans'; src:url('/fonts/nunito-sans-700.woff2') format('woff2'); font-weight:700; font-display:swap; }
+:root { --ink:#172C5B; --cream:#F6F5F1; --sand:#E8EEF7; --line:#D6DDEA; --red:#14AFAA; --gold:#EE9C2B; --soft:#5E6886; }
+* { box-sizing:border-box; }
+body { margin:0; font:17px/1.65 'Nunito Sans', Arial, sans-serif; color:var(--ink); background:var(--cream); }
+.stripe { height:12px; background:repeating-linear-gradient(90deg, var(--red) 0 48px, var(--cream) 48px 96px); }
+header { background:var(--ink); color:var(--cream); padding:22px 0; }
+.wrap { max-width:760px; margin:0 auto; padding:0 22px; }
+.logo { font-family:'Fredoka', Arial, sans-serif; font-size:26px; font-weight:700; color:var(--cream); text-decoration:none; }
+h1, h2 { font-family:'Fredoka', Arial, sans-serif; line-height:1.15; }
+h1 { font-size:42px; margin:44px 0 6px; } h2 { font-size:25px; margin:38px 0 8px; }
+.muted { color:var(--soft); font-size:15px; }
+.kids { background:var(--sand); border-left:6px solid var(--gold); border-radius:12px; padding:16px 20px; margin:26px 0; }
+.kids h2 { margin-top:0; }
+table { width:100%; border-collapse:collapse; font-size:15px; margin:10px 0; }
+th, td { text-align:left; vertical-align:top; padding:9px 10px; border-bottom:1px solid var(--line); }
+th { background:var(--sand); }
+.draft { background:#FCEDEA; border:2px dashed var(--red); border-radius:10px; padding:12px 16px; margin-top:24px; font-weight:700; }
+footer { margin:60px 0 0; background:var(--ink); color:#8E9590; font-size:14px; padding:24px 0; }
+a { color:inherit; }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<header><div class="wrap"><a class="logo" href="/"><img src="/brand/logo-light.png" alt="LevelWise" style="height:40px;width:auto"></a></div></header>
+<main class="wrap">
+  <div class="draft">DRAFT for Joel to check. Fill in the [square brackets], then delete this box before publishing. Not legal advice.</div>
+
+  <h1>Privacy</h1>
+  <p class="muted">Last updated [date]. This page explains what information LevelWise keeps, why, and what you can ask us to do with it.</p>
+
+  <div class="kids">
+    <h2>The short version, for students</h2>
+    <p>We keep your first name or nickname, the answers you type, and how you’re getting on in your game. We use that to pick questions that help you, and to show your parent and your tutor how you’re doing. We don’t show you adverts, we don’t sell your information, and nobody else can see it. If you want something deleted, ask your parent to email us.</p>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>LevelWise (levelwise.co.uk) is run by [your full legal name], a sole trader based in England. For anything on this page, email <a href="mailto:hello@levelwise.co.uk">hello@levelwise.co.uk</a>. We are registered with the Information Commissioner’s Office: registration number [ICO number].</p>
+
+  <h2>What we keep</h2>
+  <table>
+    <tr><th>Whose</th><th>What</th><th>Why</th></tr>
+    <tr><td>Parent</td><td>Email address, a password (stored scrambled so even we can’t read it), the name you give us, and which children are on your account.</td><td>To run your account and contact you about it.</td></tr>
+    <tr><td>Student</td><td>First name or nickname, an optional 4-digit PIN (stored scrambled), their exam board, their game choices (theme and the names they pick), every question shown and the answer typed with times, starting check results, progress, ranks and items earned, and the topics they’re focusing on.</td><td>To run the game, choose questions that target weak topics, bring back questions they got wrong, and show progress to their parent and tutor.</td></tr>
+    <tr><td>Tutor</td><td>Name, email address and password, plus any question reviews and notes.</td><td>To let tutors see their students’ progress (only with a parent’s permission) and check our questions.</td></tr>
+    <tr><td>Payments (when we start taking them)</td><td>Our payment provider, Stripe, handles card details. We never see or store your card number. We keep a record of what was paid and when.</td><td>To take payment and keep the business records the law requires.</td></tr>
+  </table>
+  <p>We don’t ask students for their email address, surname, date of birth, school or photo. Please don’t put a student’s full name in the names they choose for their game.</p>
+
+  <h2>Our legal reasons</h2>
+  <p>We use parent and student information to provide the service the parent has signed up for (a contract). We keep the service secure and fix problems because we have a legitimate interest in doing so. Payment records are kept because the law requires it. We share a student’s progress with their tutor only when the parent has agreed.</p>
+
+  <h2>How questions are chosen</h2>
+  <p>The game looks at which topics a student gets right and wrong and uses that to choose the next questions. That is the only automatic decision-making we do, and it only affects which maths questions appear.</p>
+
+  <h2>What we never do</h2>
+  <p>No adverts. No selling or renting information. No tracking or advertising cookies, and no analytics that follow anyone around the internet. Nothing in the game can be bought with real money.</p>
+
+  <h2>Who helps us run it</h2>
+  <p>We use a small number of companies to host LevelWise. They only use the information to provide their service to us.</p>
+  <table>
+    <tr><th>Company</th><th>What they do</th><th>Where</th></tr>
+    <tr><td>Supabase</td><td>Stores accounts, game progress and answers</td><td>Servers in London</td></tr>
+    <tr><td>Netlify</td><td>Hosts the website and keeps short-lived technical logs such as IP addresses</td><td>Global network, which may include the USA, under standard data transfer safeguards</td></tr>
+    <tr><td>Stripe (from when payments start)</td><td>Takes payments</td><td>UK, EU and USA, under standard data transfer safeguards</td></tr>
+  </table>
+
+  <h2>Cookies and browser storage</h2>
+  <p>We only store what’s needed to keep you signed in, in your browser’s storage. There are no advertising or tracking cookies, so there’s no cookie banner.</p>
+
+  <h2>How long we keep it</h2>
+  <p>We keep account and game information while the account is open. If you close your account, we delete it within [30] days. Payment records are kept for six years, because HMRC requires it. Students’ answers may be kept after that only with the name removed, so they can’t identify anyone, to help us improve the questions.</p>
+
+  <h2>Your rights</h2>
+  <p>You can ask us for a copy of the information we hold, ask us to correct it, ask us to delete it, or object to how we use it. Parents can do this for their children. Email <a href="mailto:hello@levelwise.co.uk">hello@levelwise.co.uk</a> and we’ll reply within one month. If you’re unhappy with how we’ve handled your information, you can complain to the Information Commissioner’s Office at <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk/make-a-complaint</a>.</p>
+
+  <h2>Changes</h2>
+  <p>If we change this page in a way that matters, we’ll email parents before the change takes effect.</p>
+</main>
+<footer><div class="wrap">© 2026 LevelWise · <a href="/">Home</a></div></footer>
+</body>
+</html>
